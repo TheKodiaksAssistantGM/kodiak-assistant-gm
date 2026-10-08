@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 10000;
 
 const BASE_URL = (
   process.env.BASE_URL ||
-  `http://localhost:${PORT}`
+  'https://kodiak-assistant-gm-production.up.railway.app'
 ).replace(/\/$/, '');
 
 const REDIRECT_URI = `${BASE_URL}/auth/yahoo/callback`;
