@@ -1,68 +1,970 @@
-4. Paste this into the large editor:
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Kodiaks Assistant GM</title>
+
   <style>
+    :root {
+      --bg: #eef1f5;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #687386;
+      --border: #dce1e8;
+      --accent: #172033;
+      --green: #18794e;
+      --yellow: #a66b00;
+      --red: #b42318;
+      --blue: #2457c5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 60px 24px;
-      line-height: 1.6;
-      color: #172033;
-      background: #f5f7fa;
+      margin: 0;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
-    .card {
+
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 22px 24px;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.45rem;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      opacity: .75;
+      font-size: .9rem;
+    }
+
+    .status {
+      font-size: .8rem;
+      padding: 7px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.12);
+      white-space: nowrap;
+    }
+
+    nav {
       background: white;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
     }
-    h1 { margin-top: 0; }
-    .league {
-      color: #53657a;
-      font-size: 1.1rem;
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      gap: 4px;
+      padding: 8px 16px;
+    }
+
+    nav button {
+      border: 0;
+      background: transparent;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    nav button:hover,
+    nav button.active {
+      background: #eef1f5;
+      color: var(--text);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .hero {
+      margin-bottom: 22px;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: 1.7rem;
+    }
+
+    .hero p {
+      margin: 5px 0 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 7px rgba(0,0,0,.04);
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+    }
+
+    .big-number {
+      font-size: 1.8rem;
+      font-weight: 750;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .recommendation {
+      padding: 13px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .recommendation:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .rec-type {
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--blue);
+    }
+
+    .recommendation strong {
+      display: block;
+      margin: 3px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: #eef1f5;
+      font-size: .75rem;
+      font-weight: 650;
+      margin: 3px 3px 3px 0;
+    }
+
+    .high {
+      color: var(--red);
+    }
+
+    .medium {
+      color: var(--yellow);
+    }
+
+    .player-row,
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .player-row:first-child,
+    .team-row:first-child {
+      border-top: 0;
+    }
+
+    .player-name {
+      font-weight: 700;
+    }
+
+    .player-position {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .empty {
+      padding: 25px 10px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .notice {
+      background: #fff8e6;
+      border: 1px solid #f1d58a;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+
+    .notice strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .action {
+      display: inline-block;
+      border: 0;
+      background: var(--accent);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: auto;
+      padding: 10px 24px 30px;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        padding: 16px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .span-3,
+      .span-4,
+      .span-6,
+      .span-8,
+      .span-12 {
+        grid-column: span 1;
+      }
+
+      .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>🏈 Kodiaks Assistant GM</h1>
-    <p class="league">The Alberta Cup</p>
 
-    <p>
-      Kodiaks Assistant GM is a personal fantasy football analytics
-      application designed to help manage and analyze one private
-      Yahoo Fantasy Football league.
-    </p>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <h1>🏈 Kodiaks Assistant GM</h1>
+      <p>The Alberta Cup</p>
+    </div>
 
-    <h2>Purpose</h2>
-
-    <p>
-      The application connects to Yahoo Fantasy Sports data to organize
-      league rosters, transactions, player availability, standings,
-      matchups and related fantasy football information.
-    </p>
-
-    <p>
-      The application is intended for personal use with a single
-      private fantasy football league.
-    </p>
-
-    <h2>Data Use</h2>
-
-    <p>
-      Yahoo Fantasy Sports data is used to provide analysis and
-      decision-support information for the league. The application
-      does not sell or publicly redistribute league data.
-    </p>
-
-    <p>
-      <strong>Current status:</strong> Personal project in development.
-    </p>
+    <div class="status" id="systemStatus">
+      Connecting...
+    </div>
   </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <button class="active" onclick="showPage('dashboard', this)">
+      Dashboard
+    </button>
+
+    <button onclick="showPage('team', this)">
+      My Team
+    </button>
+
+    <button onclick="showPage('start-sit', this)">
+      Start/Sit
+    </button>
+
+    <button onclick="showPage('waivers', this)">
+      Waiver Scouting
+    </button>
+
+    <button onclick="showPage('league', this)">
+      League Watch
+    </button>
+
+    <button onclick="showPage('depth', this)">
+      Depth Charts
+    </button>
+
+    <button onclick="showPage('trade', this)">
+      Trade Desk
+    </button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+
+  <section id="dashboard" class="page active">
+
+    <div class="hero">
+      <h2>Good morning, GM.</h2>
+      <p>Here's what deserves your attention.</p>
+    </div>
+
+    <div class="notice">
+      <strong>Yahoo connection pending</strong>
+      The dashboard is running in development mode. Once Yahoo Fantasy API
+      access is approved, league rosters, standings, transactions and
+      availability will replace the demonstration data automatically.
+    </div>
+
+    <div class="grid">
+
+      <div class="card span-3">
+        <h3>League</h3>
+        <div class="big-number">The Alberta Cup</div>
+        <div class="muted">12 teams · PPR</div>
+      </div>
+
+      <div class="card span-3">
+        <h3>Roster Format</h3>
+        <div class="big-number">3 WR</div>
+        <div class="muted">2 RB · 1 TE · 1 FLEX</div>
+      </div>
+
+      <div class="card span-3">
+        <h3>Keepers</h3>
+        <div class="big-number">3</div>
+        <div class="muted">$106 auction budget</div>
+      </div>
+
+      <div class="card span-3">
+        <h3>Data Status</h3>
+        <div class="big-number" id="dataMode">
+          Demo
+        </div>
+        <div class="muted">Yahoo approval pending</div>
+      </div>
+
+      <div class="card span-8">
+        <h3>🤖 Assistant GM</h3>
+        <div id="recommendations">
+          Loading recommendations...
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h3>🚨 Something Changed</h3>
+
+        <div class="recommendation">
+          <div class="rec-type">Injury Watch</div>
+          <strong>Jordan Mason</strong>
+          <div class="muted">
+            Monitor injury status before setting your lineup.
+          </div>
+        </div>
+
+        <div class="recommendation">
+          <div class="rec-type">Opportunity</div>
+          <strong>Emmett Johnson</strong>
+          <div class="muted">
+            Monitor the depth chart for increased opportunity.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card span-6">
+        <h3>💎 Potential Steals</h3>
+
+        <div class="player-row">
+          <div>
+            <div class="player-name">Emmett Johnson</div>
+            <div class="player-position">RB · Handcuff Watch</div>
+          </div>
+
+          <span class="tag">Upside</span>
+        </div>
+
+        <div class="player-row">
+          <div>
+            <div class="player-name">Sadiq</div>
+            <div class="player-position">TE · Waiver Watch</div>
+          </div>
+
+          <span class="tag">Monitor</span>
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <h3>🗑️ Potential Drops</h3>
+
+        <div class="empty">
+          Yahoo roster data required before drop recommendations can be
+          calculated.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- MY TEAM -->
+
+  <section id="team" class="page">
+
+    <div class="hero">
+      <h2>My Team</h2>
+      <p>Kodiaks roster and roster-management tools.</p>
+    </div>
+
+    <div class="notice">
+      <strong>Waiting for Yahoo roster data</strong>
+      Your live Kodiaks roster will appear here after Yahoo Fantasy API
+      access is approved and connected.
+    </div>
+
+    <div class="grid">
+
+      <div class="card span-8">
+        <h3>Kodiaks Roster</h3>
+
+        <div class="empty">
+          No live roster imported yet.
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h3>Watchlist</h3>
+        <div id="watchlist">
+          Loading...
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- START/SIT -->
+
+  <section id="start-sit" class="page">
+
+    <div class="hero">
+      <h2>Start / Sit</h2>
+      <p>Weekly lineup decisions based on matchup, opportunity and trend.</p>
+    </div>
+
+    <div class="card">
+      <div class="empty">
+        Start/Sit recommendations will activate when the live Kodiaks roster
+        and weekly matchup data are available.
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- WAIVERS -->
+
+  <section id="waivers" class="page">
+
+    <div class="hero">
+      <h2>Waiver Scouting</h2>
+      <p>Find players worth adding before the rest of the league catches on.</p>
+    </div>
+
+    <div class="grid">
+
+      <div class="card span-8">
+        <h3>Available Players</h3>
+        <div id="waiverPlayers">
+          Loading...
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h3>Scouting Philosophy</h3>
+
+        <p class="muted">
+          The Assistant GM looks beyond raw points. Opportunity, role,
+          injuries, depth-chart movement, schedule and long-term upside
+          all matter.
+        </p>
+
+        <span class="tag">Opportunity</span>
+        <span class="tag">Trend</span>
+        <span class="tag">Upside</span>
+        <span class="tag">Injury</span>
+        <span class="tag">Schedule</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- LEAGUE -->
+
+  <section id="league" class="page">
+
+    <div class="hero">
+      <h2>League Watch</h2>
+      <p>Keep tabs on the other eleven teams in The Alberta Cup.</p>
+    </div>
+
+    <div class="card">
+      <h3>League Teams</h3>
+      <div id="leagueTeams">
+        Loading...
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- DEPTH CHARTS -->
+
+  <section id="depth" class="page">
+
+    <div class="hero">
+      <h2>NFL Depth Charts</h2>
+      <p>Track backups, handcuffs and opportunity changes.</p>
+    </div>
+
+    <div class="card">
+      <div id="depthCharts">
+        Loading...
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- TRADE DESK -->
+
+  <section id="trade" class="page">
+
+    <div class="hero">
+      <h2>Trade Desk</h2>
+      <p>Evaluate trades from the perspective of the Kodiaks.</p>
+    </div>
+
+    <div class="grid">
+
+      <div class="card span-6">
+        <h3>Trade Analyzer</h3>
+
+        <div class="empty">
+          Live roster and league data are required before trade values
+          can be calculated.
+        </div>
+      </div>
+
+      <div class="card span-6">
+        <h3>What the Assistant GM Will Consider</h3>
+
+        <p class="muted">
+          Positional value, roster construction, depth, keeper value,
+          player trajectory, schedule, replacement value and league
+          context.
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  Kodiaks Assistant GM · The Alberta Cup · Version 1.1.1
+</footer>
+
+
+<script>
+
+  // ----------------------------------------------------
+  // NAVIGATION
+  // ----------------------------------------------------
+
+  function showPage(pageId, button) {
+
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+    });
+
+    document.getElementById(pageId).classList.add('active');
+
+    document.querySelectorAll('nav button').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    button.classList.add('active');
+  }
+
+
+  // ----------------------------------------------------
+  // API HELPER
+  // ----------------------------------------------------
+
+  async function getJSON(url) {
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+
+  // ----------------------------------------------------
+  // SYSTEM STATUS
+  // ----------------------------------------------------
+
+  async function loadStatus() {
+
+    try {
+
+      const status = await getJSON('/api/status');
+
+      document.getElementById('systemStatus').textContent =
+        status.ok
+          ? '🟢 Backend Online'
+          : '🔴 Backend Error';
+
+      document.getElementById('dataMode').textContent =
+        status.demoMode ? 'Demo' : 'Live';
+
+    } catch (error) {
+
+      document.getElementById('systemStatus').textContent =
+        '🔴 Backend Offline';
+
+    }
+
+  }
+
+
+  // ----------------------------------------------------
+  // RECOMMENDATIONS
+  // ----------------------------------------------------
+
+  async function loadRecommendations() {
+
+    const container =
+      document.getElementById('recommendations');
+
+    try {
+
+      const data =
+        await getJSON('/api/recommendations');
+
+      container.innerHTML = '';
+
+      data.recommendations.forEach(item => {
+
+        const div =
+          document.createElement('div');
+
+        div.className = 'recommendation';
+
+        div.innerHTML = `
+          <div class="rec-type">
+            ${item.type}
+          </div>
+
+          <strong>
+            ${item.title}
+          </strong>
+
+          <div class="muted">
+            ${item.description}
+          </div>
+        `;
+
+        container.appendChild(div);
+
+      });
+
+    } catch (error) {
+
+      container.innerHTML =
+        '<div class="empty">Unable to load recommendations.</div>';
+
+    }
+
+  }
+
+
+  // ----------------------------------------------------
+  // WATCHLIST
+  // ----------------------------------------------------
+
+  async function loadWatchlist() {
+
+    const container =
+      document.getElementById('watchlist');
+
+    try {
+
+      const data =
+        await getJSON('/api/team/kodiaks');
+
+      container.innerHTML = '';
+
+      data.watchlist.forEach(item => {
+
+        const div =
+          document.createElement('div');
+
+        div.className = 'player-row';
+
+        div.innerHTML = `
+          <div>
+            <div class="player-name">
+              ${item.player}
+            </div>
+
+            <div class="player-position">
+              ${item.position}
+            </div>
+          </div>
+
+          <span class="tag">
+            ${item.category}
+          </span>
+        `;
+
+        container.appendChild(div);
+
+      });
+
+    } catch (error) {
+
+      container.innerHTML =
+        '<div class="empty">Unable to load watchlist.</div>';
+
+    }
+
+  }
+
+
+  // ----------------------------------------------------
+  // WAIVERS
+  // ----------------------------------------------------
+
+  async function loadWaivers() {
+
+    const container =
+      document.getElementById('waiverPlayers');
+
+    try {
+
+      const data =
+        await getJSON('/api/waivers');
+
+      container.innerHTML = '';
+
+      data.players.forEach(player => {
+
+        const div =
+          document.createElement('div');
+
+        div.className = 'player-row';
+
+        div.innerHTML = `
+          <div>
+            <div class="player-name">
+              ${player.name}
+            </div>
+
+            <div class="player-position">
+              ${player.position} · ${player.category}
+            </div>
+          </div>
+
+          <span class="tag">
+            ${player.trend}
+          </span>
+        `;
+
+        container.appendChild(div);
+
+      });
+
+    } catch (error) {
+
+      container.innerHTML =
+        '<div class="empty">Unable to load waiver data.</div>';
+
+    }
+
+  }
+
+
+  // ----------------------------------------------------
+  // LEAGUE TEAMS
+  // ----------------------------------------------------
+
+  async function loadTeams() {
+
+    const container =
+      document.getElementById('leagueTeams');
+
+    try {
+
+      const data =
+        await getJSON('/api/teams');
+
+      container.innerHTML = '';
+
+      data.teams.forEach(team => {
+
+        const div =
+          document.createElement('div');
+
+        div.className = 'team-row';
+
+        div.innerHTML = `
+          <div>
+            <div class="player-name">
+              ${team.name}
+            </div>
+
+            <div class="player-position">
+              ${team.owner}
+            </div>
+          </div>
+
+          <span class="tag">
+            ${team.record}
+          </span>
+        `;
+
+        container.appendChild(div);
+
+      });
+
+    } catch (error) {
+
+      container.innerHTML =
+        '<div class="empty">Unable to load league data.</div>';
+
+    }
+
+  }
+
+
+  // ----------------------------------------------------
+  // DEPTH CHARTS
+  // ----------------------------------------------------
+
+  async function loadDepthCharts() {
+
+    const container =
+      document.getElementById('depthCharts');
+
+    try {
+
+      const data =
+        await getJSON('/api/depth-charts');
+
+      container.innerHTML = '';
+
+      data.depthCharts.forEach(item => {
+
+        const div =
+          document.createElement('div');
+
+        div.className = 'player-row';
+
+        div.innerHTML = `
+          <div>
+            <div class="player-name">
+              ${item.team} ${item.position}
+            </div>
+
+            <div class="player-position">
+              ${item.note}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(div);
+
+      });
+
+    } catch (error) {
+
+      container.innerHTML =
+        '<div class="empty">Unable to load depth charts.</div>';
+
+    }
+
+  }
+
+
+  // ----------------------------------------------------
+  // INITIAL LOAD
+  // ----------------------------------------------------
+
+  async function initializeApp() {
+
+    await Promise.all([
+      loadStatus(),
+      loadRecommendations(),
+      loadWatchlist(),
+      loadWaivers(),
+      loadTeams(),
+      loadDepthCharts()
+    ]);
+
+  }
+
+  initializeApp();
+
+</script>
+
 </body>
 </html>
