@@ -296,6 +296,11 @@ app.get('/api/depth-charts', (_req, res) => {
 // -------------------------------------------------------
 
 app.get('/auth/yahoo', (req, res) => {
+    console.log("Yahoo route diagnostic:", {
+    clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
+    deploymentId: process.env.RAILWAY_DEPLOYMENT_ID
+  });
+  
   if (!process.env.YAHOO_CLIENT_ID) {
     return res
       .status(500)
