@@ -198,7 +198,6 @@ app.get('/', (_req, res) => {
 // STATUS AND SAFE DIAGNOSTICS
 // -------------------------------------------------------
 
-
 app.get('/api/env-check', (req, res) => {
   res.json({
     clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
