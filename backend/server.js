@@ -204,8 +204,8 @@ app.get('/api/env-check', (req, res) => {
     clientSecretPresent: Boolean(process.env.YAHOO_CLIENT_SECRET),
     baseUrlPresent: Boolean(process.env.BASE_URL),
     deploymentId: process.env.RAILWAY_DEPLOYMENT_ID
+    processId: process.pid
   });
-  
 });
 app.get('/api/status', (_req, res) => {
   const clientIdPresent = Boolean(process.env.YAHOO_CLIENT_ID);
