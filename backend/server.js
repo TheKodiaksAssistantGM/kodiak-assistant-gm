@@ -7,7 +7,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 dotenv.config();
-
+console.log("Environment diagnostic:", {
+  cwd: process.cwd(),
+  baseUrlPresent: Boolean(process.env.BASE_URL),
+  clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
+  clientSecretPresent: Boolean(process.env.YAHOO_CLIENT_SECRET),
+  nodeEnv: process.env.NODE_ENV || "(unset)"
+});
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
