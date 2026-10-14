@@ -426,18 +426,18 @@ app.get('/auth/yahoo/callback', async (req, res) => {
       }
     );
 
-    if (!leagueResponse.ok) {
-      console.error(
-        'Yahoo Fantasy API returned HTTP status:',
-        leagueResponse.status
-      );
+   if (!leagueResponse.ok) {
+  const yahooError = await leagueResponse.text();
 
-      return res
-        .status(502)
-        .send(
-          `Yahoo token exchange succeeded, but the Fantasy API returned HTTP ${leagueResponse.status}. Your API access or permissions may need attention.`
-        );
-    }
+  console.error('Yahoo Fantasy API error:', {
+    status: leagueResponse.status,
+    response: yahooError.slice(0, 1500)
+  });
+
+  throw new Error(
+    `Yahoo token exchange succeeded, but the Fantasy API returned HTTP ${leagueResponse.status}. Check Railway logs for Yahoo's error details.`
+  );
+}
 
     const leagueData = await leagueResponse.json();
 
