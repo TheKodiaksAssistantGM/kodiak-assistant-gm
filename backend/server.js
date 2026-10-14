@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import crypto from 'node:crypto';
@@ -33,8 +34,7 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
   Yahoo remains the eventual source of truth.
 
   Until Yahoo Fantasy API approval is complete, the
-  application runs in DEMO MODE so the dashboard and
-  Assistant GM features can be developed safely.
+  application runs in DEMO MODE.
 */
 
 // -------------------------------------------------------
@@ -113,28 +113,28 @@ const players = [
     position: 'RB',
     category: 'Injury Watch',
     trend: 'Monitor',
-    availability: 'League',
+    availability: 'League'
   },
   {
     name: 'Emmett Johnson',
     position: 'RB',
     category: 'Handcuff Watch',
     trend: 'Upside',
-    availability: 'League',
+    availability: 'League'
   },
   {
     name: 'Sadiq',
     position: 'TE',
     category: 'Waiver Watch',
     trend: 'Monitor',
-    availability: 'Waiver',
+    availability: 'Waiver'
   },
   {
     name: 'Jake Ferguson',
     position: 'TE',
     category: 'Waiver Watch',
     trend: 'Monitor',
-    availability: 'Waiver',
+    availability: 'Waiver'
   }
 ];
 
@@ -189,25 +189,32 @@ app.get('/', (_req, res) => {
 });
 
 // -------------------------------------------------------
-// STATUS
+// STATUS AND SAFE DIAGNOSTICS
 // -------------------------------------------------------
 
 app.get('/api/status', (_req, res) => {
+  const clientIdPresent = Boolean(process.env.YAHOO_CLIENT_ID);
+  const clientSecretPresent = Boolean(process.env.YAHOO_CLIENT_SECRET);
+  const baseUrlPresent = Boolean(process.env.BASE_URL);
+
   res.json({
     ok: true,
     service: 'Kodiaks Assistant GM backend',
     version: '1.1.1',
     environment: process.env.NODE_ENV || 'development',
     demoMode: true,
-    yahooConfigured: Boolean(
-      process.env.YAHOO_CLIENT_ID &&
-      process.env.YAHOO_CLIENT_SECRET
-    ),
+
+    yahooConfigured: clientIdPresent && clientSecretPresent,
+
     diagnostic: {
-      clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
-      clientSecretPresent: Boolean(process.env.YAHOO_CLIENT_SECRET),
-      baseUrlPresent: Boolean(process.env.BASE_URL)
+      clientIdPresent,
+      clientSecretPresent,
+      baseUrlPresent,
+      railwayServiceName: process.env.RAILWAY_SERVICE_NAME || null,
+      railwayEnvironmentName: process.env.RAILWAY_ENVIRONMENT_NAME || null,
+      railwayDeploymentId: process.env.RAILWAY_DEPLOYMENT_ID || null
     },
+
     yahooApproval: 'pending',
     redirectUri: REDIRECT_URI
   });
@@ -279,14 +286,14 @@ app.get('/api/depth-charts', (_req, res) => {
 });
 
 // -------------------------------------------------------
-// YAHOO OAUTH
+// YAHOO OAUTH — AUTHORIZATION START
 // -------------------------------------------------------
 
 app.get('/auth/yahoo', (req, res) => {
   if (!process.env.YAHOO_CLIENT_ID) {
     return res
       .status(500)
-      .send('YAHOO_CLIENT_ID is not configured yet.');
+      .send('YAHOO_CLIENT_ID is not available to the running server.');
   }
 
   const state = crypto.randomBytes(24).toString('hex');
@@ -305,18 +312,35 @@ app.get('/auth/yahoo', (req, res) => {
     state
   });
 
-  res.redirect(
+  return res.redirect(
     `https://api.login.yahoo.com/oauth2/request_auth?${params}`
   );
 });
+
+// -------------------------------------------------------
+// YAHOO OAUTH — CALLBACK
+// -------------------------------------------------------
 
 app.get('/auth/yahoo/callback', (req, res) => {
   if (req.query.error) {
     return res
       .status(400)
-      .send(
-        `Yahoo authorization was not completed: ${req.query.error}`
-      );
+      .send(`Yahoo authorization was not completed: ${req.query.error}`);
+  }
+
+  const returnedState = req.query.state;
+  const savedState = req.cookies.oauth_state;
+
+  res.clearCookie('oauth_state', {
+    httpOnly: true,
+    secure: BASE_URL.startsWith('https://'),
+    sameSite: 'lax'
+  });
+
+  if (!returnedState || !savedState || returnedState !== savedState) {
+    return res
+      .status(400)
+      .send('Yahoo authorization state could not be verified. Please try connecting again.');
   }
 
   if (!req.query.code) {
@@ -325,11 +349,11 @@ app.get('/auth/yahoo/callback', (req, res) => {
       .send('Yahoo did not return an authorization code.');
   }
 
-  res.type('html').send(`
-    <h2>Kodiaks Assistant GM</h2>
-    <p>Yahoo authorization callback received successfully.</p>
-    <p>Yahoo API approval/token exchange is the next integration step.</p>
-  `);
+  return res
+    .status(501)
+    .send(
+      'Yahoo authorization was received, but token exchange and league import have not been implemented yet.'
+    );
 });
 
 // -------------------------------------------------------
