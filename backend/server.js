@@ -198,6 +198,15 @@ app.get('/', (_req, res) => {
 // STATUS AND SAFE DIAGNOSTICS
 // -------------------------------------------------------
 
+app.get('/api/env-check', (req, res) => {
+  res.json({
+    clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
+    clientSecretPresent: Boolean(process.env.YAHOO_CLIENT_SECRET),
+    baseUrlPresent: Boolean(process.env.BASE_URL),
+    deploymentId: process.env.RAILWAY_DEPLOYMENT_ID
+  });
+  
+});
 app.get('/api/status', (_req, res) => {
   const clientIdPresent = Boolean(process.env.YAHOO_CLIENT_ID);
   const clientSecretPresent = Boolean(process.env.YAHOO_CLIENT_SECRET);
