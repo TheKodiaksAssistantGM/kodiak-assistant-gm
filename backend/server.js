@@ -344,11 +344,11 @@ app.get('/auth/yahoo', (req, res) => {
 // YAHOO OAUTH — CALLBACK
 // -------------------------------------------------------
 
-app.get('/auth/yahoo/callback', (req, res) => {
+app.get('/auth/yahoo/callback', async (req, res) => {
   if (req.query.error) {
     return res
       .status(400)
-      .send(`Yahoo authorization was not completed: ${req.query.error}`);
+      .send('Yahoo authorization was not completed.');
   }
 
   const returnedState = req.query.state;
@@ -372,11 +372,91 @@ app.get('/auth/yahoo/callback', (req, res) => {
       .send('Yahoo did not return an authorization code.');
   }
 
-  return res
-    .status(501)
-    .send(
-      'Yahoo authorization was received, but token exchange and league import have not been implemented yet.'
+  if (!process.env.YAHOO_CLIENT_ID ||
+      !process.env.YAHOO_CLIENT_SECRET) {
+    return res
+      .status(500)
+      .send('Yahoo client credentials are not configured.');
+  }
+
+  try {
+    const redirectUri =
+      `${BASE_URL}/auth/yahoo/callback`;
+
+    const credentials = Buffer.from(
+      `${process.env.YAHOO_CLIENT_ID}:${process.env.YAHOO_CLIENT_SECRET}`
+    ).toString('base64');
+
+    const tokenResponse = await fetch(
+      'https://api.login.yahoo.com/oauth2/get_token',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri,
+          code: String(req.query.code)
+        })
+      }
     );
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error(
+        'Yahoo token exchange failed with HTTP status:',
+        tokenResponse.status
+      );
+
+      return res
+        .status(502)
+        .send('Yahoo token exchange failed. Check the server logs for the HTTP status.');
+    }
+
+    const leagueResponse = await fetch(
+      'https://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games;game_keys=nfl/leagues?format=json',
+      {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    if (!leagueResponse.ok) {
+      console.error(
+        'Yahoo Fantasy API returned HTTP status:',
+        leagueResponse.status
+      );
+
+      return res
+        .status(502)
+        .send(
+          `Yahoo token exchange succeeded, but the Fantasy API returned HTTP ${leagueResponse.status}. Your API access or permissions may need attention.`
+        );
+    }
+
+    const leagueData = await leagueResponse.json();
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Yahoo authorization and token exchange succeeded.',
+      leagueImportTest: 'success',
+      leagues: leagueData
+    });
+  } catch (error) {
+    console.error(
+      'Yahoo callback request failed:',
+      error.message
+    );
+
+    return res
+      .status(502)
+      .send('The Yahoo connection could not be completed. Check the server logs.');
+  }
 });
 
 // -------------------------------------------------------
