@@ -203,6 +203,11 @@ app.get('/api/status', (_req, res) => {
       process.env.YAHOO_CLIENT_ID &&
       process.env.YAHOO_CLIENT_SECRET
     ),
+    diagnostic: {
+      clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
+      clientSecretPresent: Boolean(process.env.YAHOO_CLIENT_SECRET),
+      baseUrlPresent: Boolean(process.env.BASE_URL)
+    },
     yahooApproval: 'pending',
     redirectUri: REDIRECT_URI
   });
