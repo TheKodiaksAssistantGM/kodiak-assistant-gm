@@ -12,7 +12,9 @@ console.log("Environment diagnostic:", {
   baseUrlPresent: Boolean(process.env.BASE_URL),
   clientIdPresent: Boolean(process.env.YAHOO_CLIENT_ID),
   clientSecretPresent: Boolean(process.env.YAHOO_CLIENT_SECRET),
-  nodeEnv: process.env.NODE_ENV || "(unset)"
+  nodeEnv: process.env.NODE_ENV || "(unset)",
+  deploymentId: process.env.RAILWAY_DEPLOYMENT_ID,
+  processId: process.pid
 });
 const app = express();
 app.use(express.json());
