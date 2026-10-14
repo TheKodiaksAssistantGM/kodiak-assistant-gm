@@ -8,16 +8,21 @@
 
   <style>
     :root {
-      --bg: #eef1f5;
-      --card: #ffffff;
-      --text: #172033;
-      --muted: #687386;
-      --border: #dce1e8;
-      --accent: #172033;
-      --green: #18794e;
-      --yellow: #a66b00;
-      --red: #b42318;
-      --blue: #2457c5;
+     --card: #ffffff;
+  --text: #17243a;
+  --muted: #69778b;
+  --border: #dce3ed;
+
+  --accent: #101d33;
+  --navy: #101d33;
+  --navy-light: #1c2c45;
+  --orange: #f47721;
+  --orange-light: #fff0e5;
+
+  --green: #18794e;
+  --yellow: #a66b00;
+  --red: #b42318;
+  --blue: #2457c5;
     }
 
     * {
@@ -36,10 +41,11 @@
     }
 
     header {
-      background: var(--accent);
-      color: white;
-      padding: 22px 24px;
-    }
+  background: linear-gradient(120deg, #101d33, #1c2c45);
+  color: white;
+  padding: 26px 24px;
+  border-bottom: 4px solid var(--orange);
+}
 
     .header-inner {
       max-width: 1200px;
@@ -134,13 +140,23 @@
       gap: 16px;
     }
 
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 2px 7px rgba(0,0,0,.04);
-    }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 5px 18px rgba(16, 29, 51, 0.06);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.card:hover {
+  box-shadow: 0 9px 24px rgba(16, 29, 51, 0.10);
+}
+
+
+.card:hover {
+  box-shadow: 0 9px 24px rgba(16, 29, 51, 0.10);
+}
 
     .span-3 { grid-column: span 3; }
     .span-4 { grid-column: span 4; }
