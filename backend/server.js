@@ -441,23 +441,63 @@ app.get('/auth/yahoo/callback', async (req, res) => {
 
     const leagueData = await leagueResponse.json();
 
-    return res.status(200).json({
-      ok: true,
-      message: 'Yahoo authorization and token exchange succeeded.',
-      leagueImportTest: 'success',
-      leagues: leagueData
-    });
-  } catch (error) {
-    console.error(
-      'Yahoo callback request failed:',
-      error.message
+    // Save Yahoo tokens securely in Supabase.
+    if (
+      !process.env.SUPABASE_URL ||
+      !process.env.SUPABASE_SECRET_KEY
+    ) {
+      throw new Error('Supabase environment variables are missing.');
+    }
+
+    if (!tokenData.refresh_token || !tokenData.expires_in) {
+      throw new Error('Yahoo did not return the required refresh token details.');
+    }
+
+    const expiresAt = new Date(
+      Date.now() + Number(tokenData.expires_in) * 1000
+    ).toISOString();
+
+    const supabaseResponse = await fetch(
+      `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/yahoo_tokens?on_conflict=id`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': process.env.SUPABASE_SECRET_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify({
+          id: 1,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: expiresAt,
+          updated_at: new Date().toISOString()
+        })
+      }
     );
 
-    return res
-      .status(502)
-      .send('The Yahoo connection could not be completed. Check the server logs.');
-  }
-});
+    if (!supabaseResponse.ok) {
+      const supabaseError = await supabaseResponse.text();
+
+      console.error('Supabase token storage failed:', {
+        status: supabaseResponse.status,
+        response: supabaseError.slice(0, 1000)
+      });
+
+      throw new Error(
+        `Supabase token storage failed with HTTP ${supabaseResponse.status}.`
+      );
+    }
+
+    console.log('Yahoo tokens saved successfully to Supabase.');
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Yahoo connected and tokens saved securely.',
+      leagueImportTest: 'success',
+      tokenStorage: 'success',
+      leagues: leagueData
+    });
 
 // -------------------------------------------------------
 // STATIC FRONTEND
