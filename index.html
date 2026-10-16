@@ -956,6 +956,7 @@
 
   }
 
+
   // ----------------------------------------------------
   // LIVE YAHOO ROSTER
   // ----------------------------------------------------
@@ -971,36 +972,51 @@
         throw new Error('Yahoo roster request failed.');
       }
 
-      const teamData =
-        result.data.fantasy_content.team;
+      const teamData = result.data.fantasy_content.team;
+      const roster = teamData[1].roster[0];
+      const playersObject = roster.players;
 
-      const rosterData =
-        teamData[1].roster;
-
-      const players =
-        rosterData[0].players;
-
-      const playerList = players.player || [];
+      const playerEntries = Object.keys(playersObject)
+        .filter(key => /^\d+$/.test(key))
+        .map(key => playersObject[key]);
 
       container.innerHTML = '';
 
-      playerList.forEach(entry => {
-        const player = Array.isArray(entry)
-          ? entry.find(item => item && item.player_key)
-          : entry;
+      let displayedCount = 0;
 
-        if (!player) return;
+      playerEntries.forEach(entry => {
+        const playerParts = entry.player || [];
+        const details = Array.isArray(playerParts[0])
+          ? playerParts[0]
+          : [];
 
-        const name = player.name?.full || 'Unknown player';
-        const position = player.display_position || '';
-        const nflTeam = player.editorial_team_abbr || '';
-        const statusText = player.status || '';
-        const selectedPosition = player.selected_position?.position || '';
+        const getField = field => {
+          const item = details.find(
+            detail => detail && detail[field] !== undefined
+          );
+          return item ? item[field] : null;
+        };
+
+        const nameData = getField('name');
+        const name = nameData?.full || 'Unknown player';
+        const position = getField('display_position') || '';
+        const nflTeam = getField('editorial_team_abbr') || '';
+        const playerStatus = getField('status_full') ||
+          getField('status') || '';
+
+        const selectedData = playerParts.find(
+          part => part && part.selected_position
+        );
+
+        const selectedList = selectedData?.selected_position || [];
+        const selectedPosition = selectedList.find(
+          item => item && item.position
+        )?.position || '';
 
         const div = document.createElement('div');
         div.className = 'player-row';
 
-        const details = document.createElement('div');
+        const detailsDiv = document.createElement('div');
 
         const playerName = document.createElement('div');
         playerName.className = 'player-name';
@@ -1008,18 +1024,19 @@
 
         const playerInfo = document.createElement('div');
         playerInfo.className = 'player-position';
-
         playerInfo.textContent = [
           position,
           nflTeam,
           selectedPosition ? `Lineup: ${selectedPosition}` : '',
-          statusText ? `Status: ${statusText}` : ''
+          playerStatus ? `Status: ${playerStatus}` : ''
         ].filter(Boolean).join(' · ');
 
-        details.appendChild(playerName);
-        details.appendChild(playerInfo);
-        div.appendChild(details);
+        detailsDiv.appendChild(playerName);
+        detailsDiv.appendChild(playerInfo);
+        div.appendChild(detailsDiv);
         container.appendChild(div);
+
+        displayedCount++;
       });
 
       status.innerHTML = '';
@@ -1029,14 +1046,14 @@
 
       const message = document.createElement('div');
       message.textContent =
-        `${playerList.length} roster entries loaded from Yahoo Fantasy.`;
+        `${displayedCount} roster entries loaded from Yahoo Fantasy.`;
 
       status.appendChild(heading);
       status.appendChild(message);
 
-      if (playerList.length === 0) {
+      if (displayedCount === 0) {
         container.innerHTML =
-          '<div class="empty">Yahoo returned no players in the expected format.</div>';
+          '<div class="empty">No players could be read from Yahoo roster data.</div>';
       }
 
     } catch (error) {
@@ -1046,7 +1063,7 @@
         '<strong>Could not load Yahoo roster</strong>';
 
       container.innerHTML =
-        '<div class="empty">The live roster could not be displayed. Check the API response and try again.</div>';
+        '<div class="empty">Could not display the live roster. Please try again.</div>';
     }
   }
   
