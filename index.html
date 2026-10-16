@@ -674,29 +674,30 @@
   // SYSTEM STATUS
   // ----------------------------------------------------
 
-  async function loadStatus() {
+async function loadStatus() {
+  try {
+    const status = await getJSON('/api/status');
 
-    try {
+    document.getElementById('systemStatus').textContent =
+      status.ok
+        ? '🟢 Backend Online'
+        : '🔴 Backend Error';
 
-      const status = await getJSON('/api/status');
+    document.getElementById('dataMode').textContent =
+      status.yahooRosterConnected
+        ? 'Yahoo Connected'
+        : status.demoMode
+          ? 'Demo Data'
+          : 'Live';
 
-      document.getElementById('systemStatus').textContent =
-        status.ok
-          ? '🟢 Backend Online'
-          : '🔴 Backend Error';
+  } catch (error) {
+    document.getElementById('systemStatus').textContent =
+      '🔴 Backend Offline';
 
-      document.getElementById('dataMode').textContent =
-        status.demoMode ? 'Demo' : 'Live';
-
-    } catch (error) {
-
-      document.getElementById('systemStatus').textContent =
-        '🔴 Backend Offline';
-
-    }
-
+    document.getElementById('dataMode').textContent =
+      'Connection Error';
   }
-
+}
 
   // ----------------------------------------------------
   // RECOMMENDATIONS
