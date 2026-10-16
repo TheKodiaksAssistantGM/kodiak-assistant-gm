@@ -956,7 +956,100 @@
 
   }
 
+  // ----------------------------------------------------
+  // LIVE YAHOO ROSTER
+  // ----------------------------------------------------
 
+  async function loadLiveRoster() {
+    const container = document.getElementById('liveRoster');
+    const status = document.getElementById('rosterStatus');
+
+    try {
+      const result = await getJSON('/api/yahoo/roster');
+
+      if (!result.ok) {
+        throw new Error('Yahoo roster request failed.');
+      }
+
+      const teamData =
+        result.data.fantasy_content.team;
+
+      const rosterData =
+        teamData[1].roster;
+
+      const players =
+        rosterData[0].players;
+
+      const playerList = players.player || [];
+
+      container.innerHTML = '';
+
+      playerList.forEach(entry => {
+        const player = Array.isArray(entry)
+          ? entry.find(item => item && item.player_key)
+          : entry;
+
+        if (!player) return;
+
+        const name = player.name?.full || 'Unknown player';
+        const position = player.display_position || '';
+        const nflTeam = player.editorial_team_abbr || '';
+        const statusText = player.status || '';
+        const selectedPosition = player.selected_position?.position || '';
+
+        const div = document.createElement('div');
+        div.className = 'player-row';
+
+        const details = document.createElement('div');
+
+        const playerName = document.createElement('div');
+        playerName.className = 'player-name';
+        playerName.textContent = name;
+
+        const playerInfo = document.createElement('div');
+        playerInfo.className = 'player-position';
+
+        playerInfo.textContent = [
+          position,
+          nflTeam,
+          selectedPosition ? `Lineup: ${selectedPosition}` : '',
+          statusText ? `Status: ${statusText}` : ''
+        ].filter(Boolean).join(' · ');
+
+        details.appendChild(playerName);
+        details.appendChild(playerInfo);
+        div.appendChild(details);
+        container.appendChild(div);
+      });
+
+      status.innerHTML = '';
+
+      const heading = document.createElement('strong');
+      heading.textContent = 'Yahoo roster connected';
+
+      const message = document.createElement('div');
+      message.textContent =
+        `${playerList.length} roster entries loaded from Yahoo Fantasy.`;
+
+      status.appendChild(heading);
+      status.appendChild(message);
+
+      if (playerList.length === 0) {
+        container.innerHTML =
+          '<div class="empty">Yahoo returned no players in the expected format.</div>';
+      }
+
+    } catch (error) {
+      console.error('Live roster error:', error);
+
+      status.innerHTML =
+        '<strong>Could not load Yahoo roster</strong>';
+
+      container.innerHTML =
+        '<div class="empty">The live roster could not be displayed. Check the API response and try again.</div>';
+    }
+  }
+  
   // ----------------------------------------------------
   // INITIAL LOAD
   // ----------------------------------------------------
@@ -969,7 +1062,8 @@
       loadWatchlist(),
       loadWaivers(),
       loadTeams(),
-      loadDepthCharts()
+      loadDepthCharts(),
+      loadLiveRoster()
     ]);
 
   }
