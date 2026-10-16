@@ -461,7 +461,6 @@
     </div>
   </section>
 
-
   <!-- MY TEAM -->
 
   <section id="team" class="page">
@@ -471,10 +470,9 @@
       <p>Kodiaks roster and roster-management tools.</p>
     </div>
 
-    <div class="notice">
-      <strong>Waiting for Yahoo roster data</strong>
-      Your live Kodiaks roster will appear here after Yahoo Fantasy API
-      access is approved and connected.
+    <div class="notice" id="rosterStatus">
+      <strong>Connecting to Yahoo Fantasy...</strong>
+      Retrieving your live Kodiaks roster.
     </div>
 
     <div class="grid">
@@ -482,8 +480,8 @@
       <div class="card span-8">
         <h3>Kodiaks Roster</h3>
 
-        <div class="empty">
-          No live roster imported yet.
+        <div id="liveRoster">
+          <div class="empty">Loading your live roster...</div>
         </div>
       </div>
 
@@ -497,7 +495,6 @@
     </div>
 
   </section>
-
 
   <!-- START/SIT -->
 
