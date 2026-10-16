@@ -602,6 +602,46 @@ app.get('/auth/yahoo/callback', async (req, res) => {
   }
 });
 
+app.get('/api/yahoo/leagues', async (_req, res) => {
+  try {
+    const accessToken = await getSavedYahooAccessToken();
+
+    const response = await fetch(
+      'https://fantasysports.yahooapis.com/fantasy/v2/users;use_login=1/games;game_keys=nfl/leagues?format=json',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Yahoo leagues request failed:', response.status);
+
+      return res.status(502).json({
+        ok: false,
+        error: `Yahoo API returned HTTP ${response.status}.`
+      });
+    }
+
+    const data = await response.json();
+
+    return res.json({
+      ok: true,
+      message: 'Live Yahoo league data retrieved successfully.',
+      data
+    });
+  } catch (error) {
+    console.error('Live Yahoo leagues endpoint failed:', error.message);
+
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not retrieve live Yahoo league data. Check server logs.'
+    });
+  }
+});
+
 // -------------------------------------------------------
 // STATIC FRONTEND
 // -------------------------------------------------------
