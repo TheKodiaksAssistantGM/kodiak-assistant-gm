@@ -740,49 +740,112 @@
     }
   }
 
-  async function loadWaivers() {
-    const container = document.getElementById('waiverPlayers');
+async function loadWaivers() {
+  const container = document.getElementById('waiverPlayers');
+  container.textContent = 'Loading live Yahoo players...';
 
-    try {
-      const data = await getJSON('/api/waivers');
-      container.innerHTML = '';
+  try {
+    const result = await getJSON('/api/waivers');
 
-      if (!Array.isArray(data.players) || !data.players.length) {
-        container.textContent = 'No waiver players available.';
-        return;
+    if (!result.ok || !result.data) {
+      throw new Error(result.error || 'Yahoo player data is missing.');
+    }
+
+    const league = result.data.fantasy_content?.league?.[0];
+    const yahooPlayers = league?.players;
+
+    if (!yahooPlayers) {
+      container.textContent = 'Yahoo returned no player list.';
+      return;
+    }
+
+    const players = [];
+
+    for (const [key, entry] of Object.entries(yahooPlayers)) {
+      if (!/^\d+$/.test(key)) continue;
+
+      const properties = entry.player?.[0];
+      if (!Array.isArray(properties)) continue;
+
+      const player = {};
+      for (const item of properties) {
+        if (!item || typeof item !== 'object') continue;
+
+        for (const [field, value] of Object.entries(item)) {
+          player[field] = value;
+        }
       }
 
-      data.players.forEach(player => {
-        const row = document.createElement('div');
-        row.className = 'player-row';
+      const position = player.display_position || '';
+      if (!['QB', 'RB', 'WR', 'TE'].includes(position)) continue;
 
-        const details = document.createElement('div');
-        const name = document.createElement('div');
-        name.className = 'player-name';
-        name.textContent = player.name || 'Unknown player';
-
-        const info = document.createElement('div');
-        info.className = 'player-position';
-        info.textContent = [
-          player.position,
-          player.category
-        ].filter(Boolean).join(' · ');
-
-        const tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.textContent = player.trend || 'Watch';
-
-        details.appendChild(name);
-        details.appendChild(info);
-        row.appendChild(details);
-        row.appendChild(tag);
-        container.appendChild(row);
+      players.push({
+        name: player.name?.full || 'Unknown player',
+        position,
+        team: player.editorial_team_abbr || '',
+        status: player.status_full || player.status || 'Available',
+        injury: player.injury_note || '',
+        bye: player.bye_weeks?.week || ''
       });
-    } catch (error) {
-      console.error('Waivers error:', error);
-      container.textContent = 'Unable to load waiver data.';
     }
+
+    container.replaceChildren();
+
+    const heading = document.createElement('p');
+    heading.className = 'muted';
+    heading.textContent =
+      `Live Yahoo data · ${players.length} skill-position players in this batch`;
+    container.appendChild(heading);
+
+    if (!players.length) {
+      const empty = document.createElement('p');
+      empty.textContent = 'No skill-position players found in this batch.';
+      container.appendChild(empty);
+      return;
+    }
+
+    for (const player of players) {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+
+      const details = document.createElement('div');
+
+      const name = document.createElement('div');
+      name.className = 'player-name';
+      name.textContent = player.name;
+
+      const info = document.createElement('div');
+      info.className = 'player-position';
+      info.textContent = [
+        player.position,
+        player.team,
+        player.bye ? `Bye: Week ${player.bye}` : ''
+      ].filter(Boolean).join(' · ');
+
+      details.appendChild(name);
+      details.appendChild(info);
+
+      if (player.injury || player.status !== 'Available') {
+        const note = document.createElement('div');
+        note.className = 'muted';
+        note.textContent = [player.status, player.injury]
+          .filter(Boolean).join(' · ');
+        details.appendChild(note);
+      }
+
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = 'Yahoo Available';
+
+      row.appendChild(details);
+      row.appendChild(tag);
+      container.appendChild(row);
+    }
+  } catch (error) {
+    console.error('Waivers error:', error);
+    container.textContent = 'Unable to load live Yahoo waiver data.';
   }
+}
 
   async function loadTeams() {
     const container = document.getElementById('leagueTeams');
