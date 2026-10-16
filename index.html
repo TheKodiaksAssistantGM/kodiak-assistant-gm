@@ -740,7 +740,6 @@
     }
   }
 
-
 async function loadWaivers() {
   const container = document.getElementById('waiverPlayers');
   container.textContent = 'Loading live Yahoo players...';
@@ -776,6 +775,11 @@ async function loadWaivers() {
       const properties = Array.isArray(rawPlayer[0])
         ? rawPlayer[0]
         : rawPlayer;
+      container.dataset.waiverDebug = JSON.stringify({
+  key,
+  rawPlayerType: Array.isArray(rawPlayer),
+  firstPlayerItem: rawPlayer[0]
+});
 
       const player = {};
 
