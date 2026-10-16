@@ -703,52 +703,115 @@ async function loadStatus() {
   // RECOMMENDATIONS
   // ----------------------------------------------------
 
-  async function loadRecommendations() {
+async function loadRecommendations() {
+  const container = document.getElementById('recommendations');
 
-    const container =
-      document.getElementById('recommendations');
+  try {
+    const result = await getJSON('/api/yahoo/roster');
 
-    try {
-
-      const data =
-        await getJSON('/api/recommendations');
-
-      container.innerHTML = '';
-
-      data.recommendations.forEach(item => {
-
-        const div =
-          document.createElement('div');
-
-        div.className = 'recommendation';
-
-        div.innerHTML = `
-          <div class="rec-type">
-            ${item.type}
-          </div>
-
-          <strong>
-            ${item.title}
-          </strong>
-
-          <div class="muted">
-            ${item.description}
-          </div>
-        `;
-
-        container.appendChild(div);
-
-      });
-
-    } catch (error) {
-
-      container.innerHTML =
-        '<div class="empty">Unable to load recommendations.</div>';
-
+    if (!result.ok) {
+      throw new Error('Yahoo roster request failed.');
     }
 
-  }
+    const teamData = result.data.fantasy_content.team;
+    const roster = teamData[1].roster[0];
+    const playersObject = roster.players;
 
+    const playerEntries = Object.keys(playersObject)
+      .filter(key => /^\d+$/.test(key))
+      .map(key => playersObject[key]);
+
+    const players = playerEntries.map(entry => {
+      const parts = entry.player || [];
+      const details = Array.isArray(parts[0]) ? parts[0] : [];
+
+      const getField = field => {
+        const item = details.find(
+          detail => detail && detail[field] !== undefined
+        );
+        return item ? item[field] : null;
+      };
+
+      const nameData = getField('name');
+      const selectedData = parts.find(
+        part => part && part.selected_position
+      );
+      const selectedPosition =
+        selectedData?.selected_position?.find(item => item.position)
+          ?.position || '';
+
+      return {
+        name: nameData?.full || 'Unknown player',
+        position: getField('display_position') || '',
+        status: getField('status') || '',
+        injury: getField('injury_note') || '',
+        lineup: selectedPosition
+      };
+    });
+
+    const recommendations = [];
+
+    const injured = players.filter(player =>
+      ['O', 'IR', 'PUP', 'SUSP'].includes(player.status)
+    );
+
+    if (injured.length) {
+      recommendations.push({
+        title: 'Review player availability',
+        description: injured.map(player =>
+          `${player.name}${player.status ? ` (${player.status})` : ''}`
+        ).join(', '),
+        type: 'ROSTER ALERT'
+      });
+    }
+
+    const bench = players.filter(player =>
+      player.lineup === 'BN'
+    );
+
+    recommendations.push({
+      title: 'Check your bench before kickoff',
+      description: bench.length
+        ? `${bench.length} players are currently on your bench. Review their matchups and bye weeks before setting your lineup.`
+        : 'Review your lineup assignments and confirm every starter is available.',
+      type: 'LINEUP CHECK'
+    });
+
+    container.innerHTML = '';
+
+    recommendations.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'recommendation';
+
+      const type = document.createElement('div');
+      type.className = 'rec-type';
+      type.textContent = item.type;
+
+      const title = document.createElement('strong');
+      title.textContent = item.title;
+
+      const description = document.createElement('div');
+      description.className = 'muted';
+      description.textContent = item.description;
+
+      div.appendChild(type);
+      div.appendChild(title);
+      div.appendChild(description);
+      container.appendChild(div);
+    });
+
+    if (!recommendations.length) {
+      container.innerHTML =
+        '<div class="empty">No roster alerts right now.</div>';
+    }
+
+  } catch (error) {
+    console.error('Dashboard recommendations error:', error);
+
+    container.innerHTML =
+      '<div class="empty">Unable to load live roster insights.</div>';
+  }
+}
 
   // ----------------------------------------------------
   // WATCHLIST
