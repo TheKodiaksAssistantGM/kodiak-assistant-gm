@@ -499,6 +499,15 @@ app.get('/auth/yahoo/callback', async (req, res) => {
       leagues: leagueData
     });
 
+      } catch (error) {
+    console.error('Yahoo callback request failed:', error.message);
+
+    return res
+      .status(502)
+      .send('The Yahoo connection could not be completed. Check the server logs.');
+  }
+});
+
 // -------------------------------------------------------
 // STATIC FRONTEND
 // -------------------------------------------------------
