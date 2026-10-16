@@ -642,6 +642,46 @@ app.get('/api/yahoo/leagues', async (_req, res) => {
   }
 });
 
+app.get('/api/yahoo/teams', async (_req, res) => {
+  try {
+    const accessToken = await getSavedYahooAccessToken();
+
+    const response = await fetch(
+      'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/teams?format=json',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Yahoo teams request failed:', response.status);
+
+      return res.status(502).json({
+        ok: false,
+        error: `Yahoo API returned HTTP ${response.status}.`
+      });
+    }
+
+    const data = await response.json();
+
+    return res.json({
+      ok: true,
+      message: 'Live Yahoo teams retrieved successfully.',
+      data
+    });
+  } catch (error) {
+    console.error('Live Yahoo teams endpoint failed:', error.message);
+
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not retrieve live Yahoo teams. Check server logs.'
+    });
+  }
+});
+
 // -------------------------------------------------------
 // STATIC FRONTEND
 // -------------------------------------------------------
