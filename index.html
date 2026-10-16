@@ -769,7 +769,7 @@ const yahooPlayers =
     for (const [key, entry] of Object.entries(yahooPlayers)) {
       if (!/^\d+$/.test(key)) continue;
 
-const properties = entry.player?.[0]?.[0];
+const properties = entry.player?.[0];
       if (!Array.isArray(properties)) continue;
 
       const player = {};
