@@ -405,17 +405,14 @@
           Loading recommendations...
         </div>
       </div>
+     
+<div class="card span-4">
+  <h3>🚨 Something Changed</h3>
 
-      <div class="card span-4">
-        <h3>🚨 Something Changed</h3>
-
-        <div class="recommendation">
-          <div class="rec-type">Injury Watch</div>
-          <strong>Jordan Mason</strong>
-          <div class="muted">
-            Monitor injury status before setting your lineup.
-          </div>
-        </div>
+  <div id="liveChanges">
+    <div class="empty">Checking live roster status...</div>
+  </div>
+</div>
 
         <div class="recommendation">
           <div class="rec-type">Opportunity</div>
@@ -1020,116 +1017,95 @@ async function loadRecommendations() {
 
   }
 
-
   // ----------------------------------------------------
   // LIVE YAHOO ROSTER
   // ----------------------------------------------------
 
-  async function loadLiveRoster() {
-    const container = document.getElementById('liveRoster');
-    const status = document.getElementById('rosterStatus');
+async function loadLiveChanges() {
+  const container = document.getElementById('liveChanges');
 
-    try {
-      const result = await getJSON('/api/yahoo/roster');
+  try {
+    const result = await getJSON('/api/yahoo/roster');
 
-      if (!result.ok) {
-        throw new Error('Yahoo roster request failed.');
-      }
-
-      const teamData = result.data.fantasy_content.team;
-      const roster = teamData[1].roster[0];
-      const playersObject = roster.players;
-
-      const playerEntries = Object.keys(playersObject)
-        .filter(key => /^\d+$/.test(key))
-        .map(key => playersObject[key]);
-
-      container.innerHTML = '';
-
-      let displayedCount = 0;
-
-      playerEntries.forEach(entry => {
-        const playerParts = entry.player || [];
-        const details = Array.isArray(playerParts[0])
-          ? playerParts[0]
-          : [];
-
-        const getField = field => {
-          const item = details.find(
-            detail => detail && detail[field] !== undefined
-          );
-          return item ? item[field] : null;
-        };
-
-        const nameData = getField('name');
-        const name = nameData?.full || 'Unknown player';
-        const position = getField('display_position') || '';
-        const nflTeam = getField('editorial_team_abbr') || '';
-        const playerStatus = getField('status_full') ||
-          getField('status') || '';
-
-        const selectedData = playerParts.find(
-          part => part && part.selected_position
-        );
-
-        const selectedList = selectedData?.selected_position || [];
-        const selectedPosition = selectedList.find(
-          item => item && item.position
-        )?.position || '';
-
-        const div = document.createElement('div');
-        div.className = 'player-row';
-
-        const detailsDiv = document.createElement('div');
-
-        const playerName = document.createElement('div');
-        playerName.className = 'player-name';
-        playerName.textContent = name;
-
-        const playerInfo = document.createElement('div');
-        playerInfo.className = 'player-position';
-        playerInfo.textContent = [
-          position,
-          nflTeam,
-          selectedPosition ? `Lineup: ${selectedPosition}` : '',
-          playerStatus ? `Status: ${playerStatus}` : ''
-        ].filter(Boolean).join(' · ');
-
-        detailsDiv.appendChild(playerName);
-        detailsDiv.appendChild(playerInfo);
-        div.appendChild(detailsDiv);
-        container.appendChild(div);
-
-        displayedCount++;
-      });
-
-      status.innerHTML = '';
-
-      const heading = document.createElement('strong');
-      heading.textContent = 'Yahoo roster connected';
-
-      const message = document.createElement('div');
-      message.textContent =
-        `${displayedCount} roster entries loaded from Yahoo Fantasy.`;
-
-      status.appendChild(heading);
-      status.appendChild(message);
-
-      if (displayedCount === 0) {
-        container.innerHTML =
-          '<div class="empty">No players could be read from Yahoo roster data.</div>';
-      }
-
-    } catch (error) {
-      console.error('Live roster error:', error);
-
-      status.innerHTML =
-        '<strong>Could not load Yahoo roster</strong>';
-
-      container.innerHTML =
-        '<div class="empty">Could not display the live roster. Please try again.</div>';
+    if (!result.ok) {
+      throw new Error('Yahoo roster request failed.');
     }
+
+    const teamData = result.data.fantasy_content.team;
+    const roster = teamData[1].roster[0];
+    const playersObject = roster.players;
+
+    const entries = Object.keys(playersObject)
+      .filter(key => /^\d+$/.test(key))
+      .map(key => playersObject[key]);
+
+    const alerts = [];
+
+    entries.forEach(entry => {
+      const parts = entry.player || [];
+      const details = Array.isArray(parts[0]) ? parts[0] : [];
+
+      const getField = field => {
+        const item = details.find(
+          detail => detail && detail[field] !== undefined
+        );
+        return item ? item[field] : null;
+      };
+
+      const name = getField('name')?.full || 'Unknown player';
+      const status = getField('status') || '';
+      const injuryNote = getField('injury_note') || '';
+
+      if (status === 'IR' || status === 'O' || status === 'PUP') {
+        alerts.push({
+          label: 'Roster Status',
+          name,
+          detail: injuryNote || `Yahoo status: ${status}`
+        });
+      } else if (status === 'Q' || status === 'D') {
+        alerts.push({
+          label: 'Availability Watch',
+          name,
+          detail: injuryNote || `Yahoo status: ${status}`
+        });
+      }
+    });
+
+    container.innerHTML = '';
+
+    if (alerts.length === 0) {
+      container.textContent =
+        'No injury or availability alerts found in the current Yahoo roster data.';
+      return;
+    }
+
+    alerts.forEach(alert => {
+      const div = document.createElement('div');
+      div.className = 'recommendation';
+
+      const label = document.createElement('div');
+      label.className = 'rec-type';
+      label.textContent = alert.label;
+
+      const name = document.createElement('strong');
+      name.textContent = alert.name;
+
+      const detail = document.createElement('div');
+      detail.className = 'muted';
+      detail.textContent = alert.detail;
+
+      div.appendChild(label);
+      div.appendChild(name);
+      div.appendChild(detail);
+      container.appendChild(div);
+    });
+
+  } catch (error) {
+    console.error('Live changes error:', error);
+    container.textContent =
+      'Unable to check live roster status right now.';
   }
+}
   
   // ----------------------------------------------------
   // INITIAL LOAD
@@ -1144,7 +1120,8 @@ async function loadRecommendations() {
       loadWaivers(),
       loadTeams(),
       loadDepthCharts(),
-      loadLiveRoster()
+      loadLiveRoster(),
+      loadLiveChanges()
     ]);
 
   }
