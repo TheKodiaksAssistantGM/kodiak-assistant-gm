@@ -362,20 +362,46 @@ app.get('/api/team/kodiaks', (_req, res) => {
 // PLAYERS / WAIVERS
 // -------------------------------------------------------
 
-app.get('/api/players', (_req, res) => {
-  res.json({
-    demoMode: true,
-    players
-  });
-});
+app.get('/api/waivers', async (_req, res) => {
+  try {
+    const accessToken = await getSavedYahooAccessToken();
 
-app.get('/api/waivers', (_req, res) => {
-  res.json({
-    demoMode: true,
-    players: players.filter(
-      player => player.availability === 'Waiver'
-    )
-  });
+    const response = await fetch(
+      'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=A;start=0;count=25?format=json',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Yahoo waiver request failed:', response.status);
+
+      return res.status(502).json({
+        ok: false,
+        error: `Yahoo API returned HTTP ${response.status}.`
+      });
+    }
+
+    const data = await response.json();
+
+    return res.json({
+      ok: true,
+      demoMode: false,
+      source: 'Yahoo Fantasy API',
+      message: 'Live available-player data retrieved.',
+      data
+    });
+  } catch (error) {
+    console.error('Yahoo waiver endpoint failed:', error.message);
+
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not retrieve Yahoo waiver data. Check server logs.'
+    });
+  }
 });
 
 // -------------------------------------------------------
