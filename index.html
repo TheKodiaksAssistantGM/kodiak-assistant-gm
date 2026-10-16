@@ -770,8 +770,13 @@ const yahooPlayers =
       if (!/^\d+$/.test(key)) continue;
 
 const properties = entry.player?.[0];
-console.log('Waiver parser check:', key, entry.player, properties);
-if (!Array.isArray(properties)) continue;
+container.insertAdjacentHTML(
+  'beforeend',
+  `<pre>${JSON.stringify({ key, player: entry.player }, null, 2)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')}</pre>`
+);
 
       const player = {};
       for (const item of properties) {
