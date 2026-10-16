@@ -740,6 +740,7 @@
     }
   }
 
+
 async function loadWaivers() {
   const container = document.getElementById('waiverPlayers');
   container.textContent = 'Loading live Yahoo players...';
@@ -751,13 +752,13 @@ async function loadWaivers() {
       throw new Error(result.error || 'Yahoo player data is missing.');
     }
 
-const leagueData = result.data.fantasy_content?.league;
+    const leagueData = result.data.fantasy_content?.league;
 
-const yahooPlayers =
-  (Array.isArray(leagueData)
-    ? leagueData.find(item => item && item.players)
-    : leagueData?.players) ||
-  result.data.fantasy_content?.players;
+    const yahooPlayers =
+      (Array.isArray(leagueData)
+        ? leagueData.find(item => item && item.players)
+        : leagueData?.players) ||
+      result.data.fantasy_content?.players;
 
     if (!yahooPlayers) {
       container.textContent = 'Yahoo returned no player list.';
@@ -769,21 +770,6 @@ const yahooPlayers =
     for (const [key, entry] of Object.entries(yahooPlayers)) {
       if (!/^\d+$/.test(key)) continue;
 
-const properties = entry.player?.[0];
-container.insertAdjacentHTML(
-  'beforeend',
-  `<pre>${JSON.stringify({ key, player: entry.player }, null, 2)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')}</pre>`
-);
-
-    const players = [];
-
-    for (const [key, entry] of Object.entries(yahooPlayers)) {
-      if (!/^\d+$/.test(key)) continue;
-
-      // Yahoo wraps each player's fields in an array.
       const rawPlayer = entry?.player;
       if (!Array.isArray(rawPlayer)) continue;
 
