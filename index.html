@@ -751,8 +751,13 @@ async function loadWaivers() {
       throw new Error(result.error || 'Yahoo player data is missing.');
     }
 
-    const league = result.data.fantasy_content?.league?.[0];
-    const yahooPlayers = league?.players;
+const leagueData = result.data.fantasy_content?.league;
+
+const yahooPlayers =
+  (Array.isArray(leagueData)
+    ? leagueData.find(item => item && item.players)
+    : leagueData?.players) ||
+  result.data.fantasy_content?.players;
 
     if (!yahooPlayers) {
       container.textContent = 'Yahoo returned no player list.';
