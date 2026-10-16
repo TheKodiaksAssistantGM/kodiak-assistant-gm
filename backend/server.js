@@ -29,6 +29,100 @@ const BASE_URL = (
 
 const REDIRECT_URI = `${BASE_URL}/auth/yahoo/callback`;
 
+async function getSavedYahooAccessToken() {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
+    throw new Error('Supabase is not configured.');
+  }
+
+  const supabaseUrl = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const headers = {
+    apikey: process.env.SUPABASE_SECRET_KEY,
+    'Content-Type': 'application/json'
+  };
+
+  // Read the saved Yahoo tokens from Supabase.
+  const storedResponse = await fetch(
+    `${supabaseUrl}/rest/v1/yahoo_tokens?id=eq.1&select=id,access_token,refresh_token,expires_at`,
+    { headers }
+  );
+
+  if (!storedResponse.ok) {
+    throw new Error(`Could not read saved Yahoo tokens: HTTP ${storedResponse.status}.`);
+  }
+
+  const rows = await storedResponse.json();
+
+  if (!rows.length) {
+    throw new Error('No saved Yahoo connection was found. Connect Yahoo again.');
+  }
+
+  const saved = rows[0];
+
+  // Reuse the access token if it remains valid for at least another minute.
+  if (Date.parse(saved.expires_at) > Date.now() + 60000) {
+    return saved.access_token;
+  }
+
+  // Otherwise, ask Yahoo for a fresh access token.
+  const credentials = Buffer.from(
+    `${process.env.YAHOO_CLIENT_ID}:${process.env.YAHOO_CLIENT_SECRET}`
+  ).toString('base64');
+
+  const refreshResponse = await fetch(
+    'https://api.login.yahoo.com/oauth2/get_token',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: saved.refresh_token
+      })
+    }
+  );
+
+  const refreshed = await refreshResponse.json();
+
+  if (!refreshResponse.ok || !refreshed.access_token) {
+    console.error('Yahoo token refresh failed:', refreshResponse.status);
+    throw new Error('Yahoo token refresh failed. Please reconnect Yahoo if needed.');
+  }
+
+  const expiresAt = new Date(
+    Date.now() + Number(refreshed.expires_in) * 1000
+  ).toISOString();
+
+  // Save the renewed tokens without exposing them to the browser.
+  const saveResponse = await fetch(
+    `${supabaseUrl}/rest/v1/yahoo_tokens?on_conflict=id`,
+    {
+      method: 'POST',
+      headers: {
+        ...headers,
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({
+        id: 1,
+        access_token: refreshed.access_token,
+        refresh_token: refreshed.refresh_token || saved.refresh_token,
+        expires_at: expiresAt,
+        updated_at: new Date().toISOString()
+      })
+    }
+  );
+
+  if (!saveResponse.ok) {
+    console.error('Could not save refreshed Yahoo tokens:', saveResponse.status);
+    throw new Error('Yahoo tokens refreshed, but saving them failed.');
+  }
+
+  console.log('Yahoo access token refreshed and saved.');
+
+  return refreshed.access_token;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..');
