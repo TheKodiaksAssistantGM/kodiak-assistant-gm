@@ -682,6 +682,46 @@ app.get('/api/yahoo/teams', async (_req, res) => {
   }
 });
 
+app.get('/api/yahoo/roster', async (_req, res) => {
+  try {
+    const accessToken = await getSavedYahooAccessToken();
+
+    const response = await fetch(
+      'https://fantasysports.yahooapis.com/fantasy/v2/team/470.l.667251.t.9/roster?format=json',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Yahoo roster request failed:', response.status);
+
+      return res.status(502).json({
+        ok: false,
+        error: `Yahoo API returned HTTP ${response.status}.`
+      });
+    }
+
+    const data = await response.json();
+
+    return res.json({
+      ok: true,
+      message: 'Live Kodiaks roster retrieved successfully.',
+      data
+    });
+  } catch (error) {
+    console.error('Live Yahoo roster endpoint failed:', error.message);
+
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not retrieve the Kodiaks roster. Check server logs.'
+    });
+  }
+});
+
 // -------------------------------------------------------
 // STATIC FRONTEND
 // -------------------------------------------------------
