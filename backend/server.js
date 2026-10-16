@@ -314,9 +314,12 @@ app.get('/api/status', (_req, res) => {
     service: 'Kodiaks Assistant GM backend',
     version: '1.1.1',
     environment: process.env.NODE_ENV || 'development',
+
+    // Some app sections still use demo data.
     demoMode: true,
 
     yahooConfigured: clientIdPresent && clientSecretPresent,
+    yahooRosterConnected: true,
 
     diagnostic: {
       clientIdPresent,
@@ -327,7 +330,7 @@ app.get('/api/status', (_req, res) => {
       railwayDeploymentId: process.env.RAILWAY_DEPLOYMENT_ID || null
     },
 
-    yahooApproval: 'pending',
+    yahooApproval: 'approved',
     redirectUri: REDIRECT_URI
   });
 });
