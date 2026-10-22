@@ -367,7 +367,7 @@ app.get('/api/waivers', async (_req, res) => {
     const accessToken = await getSavedYahooAccessToken();
 
     const response = await fetch(
-      'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=A;start=0;count=25?format=json',
+     'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=FA;start=0;count=25?format=json',
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
