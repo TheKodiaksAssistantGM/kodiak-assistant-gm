@@ -1,216 +1,213 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kodiaks Assistant GM</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kodiaks Assistant GM</title>
+<style>
+:root {
+  --card: #17263D;
+  --bg: #0B162A;
+  --text: #C6D0DE;
+  --muted: #91A0B5;
+  --border: #30415A;
+  --accent: #C83803;
+  --navy: #0B162A;
+  --navy-light: #17263D;
+  --orange: #C83803;
+  --green: #4FAD83;
+  --yellow: #D9A441;
+  --red: #E16B6B;
+  --blue: #7D9BCB;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  background: linear-gradient(120deg, var(--navy), var(--navy-light));
+  color: var(--text);
+  padding: 26px 24px;
+  border-bottom: 4px solid var(--orange);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+.brand h1 { margin: 0; font-size: 1.45rem; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: .9rem; }
+.status {
+  font-size: .8rem;
+  padding: 7px 10px;
+  border-radius: 20px;
+  background: #263851;
+  color: var(--text);
+  white-space: nowrap;
+}
+nav {
+  background: #101D33;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+}
+nav button {
+  border: 0;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+nav button:hover, nav button.active {
+  background: var(--orange);
+  color: #0B162A;
+}
+main { max-width: 1200px; margin: auto; padding: 24px; }
+.page { display: none; }
+.page.active { display: block; }
+.hero { margin-bottom: 22px; }
+.hero h2 { margin: 0; font-size: 1.7rem; color: var(--text); }
+.hero p { margin: 5px 0 0; color: var(--muted); }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 5px 18px rgba(0,0,0,.16);
+}
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; }
+.span-8 { grid-column: span 8; }
+.span-12 { grid-column: span 12; }
+.card h3 { margin: 0 0 12px; font-size: 1rem; color: var(--text); }
+.big-number { font-size: 1.8rem; font-weight: 750; color: #B9C7D8; }
+.muted { color: var(--muted); }
+.recommendation { padding: 13px 0; border-top: 1px solid var(--border); }
+.recommendation:first-child { border-top: 0; padding-top: 0; }
+.rec-type {
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--blue);
+}
+.recommendation strong { display: block; margin: 3px 0; color: var(--text); }
+.tag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: #263851;
+  color: #AAB6C5;
+  border: 1px solid #344761;
+  font-size: .75rem;
+  font-weight: 650;
+  margin: 3px 3px 3px 0;
+}
+.player-row, .team-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.player-row:first-child, .team-row:first-child { border-top: 0; }
+.player-name { font-weight: 700; color: var(--text); }
+.player-position { font-size: .8rem; color: var(--muted); }
+.empty { padding: 25px 10px; text-align: center; color: var(--muted); }
+.notice {
+  background: #17263D;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--orange);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.notice strong { display: block; margin-bottom: 4px; color: #B9C7D8; }
 
-  <style>
-    :root {
-      --card: #ffffff;
-      --bg: #f4f6fa;
-      --text: #17243a;
-      --muted: #69778b;
-      --border: #dce3ed;
-      --accent: #101d33;
-      --navy: #101d33;
-      --navy-light: #1c2c45;
-      --orange: #f47721;
-      --green: #18794e;
-      --yellow: #a66b00;
-      --red: #b42318;
-      --blue: #2457c5;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    header {
-      background: linear-gradient(120deg, var(--navy), var(--navy-light));
-      color: white;
-      padding: 26px 24px;
-      border-bottom: 4px solid var(--orange);
-    }
-
-    .header-inner {
-      max-width: 1200px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .brand h1 { margin: 0; font-size: 1.45rem; }
-    .brand p { margin: 4px 0 0; opacity: .75; font-size: .9rem; }
-
-    .status {
-      font-size: .8rem;
-      padding: 7px 10px;
-      border-radius: 20px;
-      background: rgba(255,255,255,.12);
-      white-space: nowrap;
-    }
-
-    nav {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      overflow-x: auto;
-    }
-
-    .nav-inner {
-      max-width: 1200px;
-      margin: auto;
-      display: flex;
-      gap: 4px;
-      padding: 8px 16px;
-    }
-
-    nav button {
-      border: 0;
-      background: transparent;
-      padding: 10px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      color: var(--muted);
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    nav button:hover, nav button.active {
-      background: #eef1f5;
-      color: var(--text);
-    }
-
-    main {
-      max-width: 1200px;
-      margin: auto;
-      padding: 24px;
-    }
-
-    .page { display: none; }
-    .page.active { display: block; }
-    .hero { margin-bottom: 22px; }
-    .hero h2 { margin: 0; font-size: 1.7rem; }
-    .hero p { margin: 5px 0 0; color: var(--muted); }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 16px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
-      box-shadow: 0 5px 18px rgba(16,29,51,.06);
-    }
-
-    .span-3 { grid-column: span 3; }
-    .span-4 { grid-column: span 4; }
-    .span-6 { grid-column: span 6; }
-    .span-8 { grid-column: span 8; }
-    .span-12 { grid-column: span 12; }
-
-    .card h3 { margin: 0 0 12px; font-size: 1rem; }
-    .big-number { font-size: 1.8rem; font-weight: 750; }
-    .muted { color: var(--muted); }
-
-    .recommendation {
-      padding: 13px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .recommendation:first-child {
-      border-top: 0;
-      padding-top: 0;
-    }
-
-    .rec-type {
-      font-size: .72rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--blue);
-    }
-
-    .recommendation strong { display: block; margin: 3px 0; }
-
-    .tag {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 20px;
-      background: #eef1f5;
-      font-size: .75rem;
-      font-weight: 650;
-      margin: 3px 3px 3px 0;
-    }
-
-    .player-row, .team-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      padding: 12px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .player-row:first-child, .team-row:first-child { border-top: 0; }
-    .player-name { font-weight: 700; }
-    .player-position { font-size: .8rem; color: var(--muted); }
-
-    .empty {
-      padding: 25px 10px;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    .notice {
-      background: #fff8e6;
-      border: 1px solid #f1d58a;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 18px;
-    }
-
-    .notice strong { display: block; margin-bottom: 4px; }
-
-    footer {
-      max-width: 1200px;
-      margin: auto;
-      padding: 10px 24px 30px;
-      color: var(--muted);
-      font-size: .8rem;
-    }
-
-    @media (max-width: 800px) {
-      main { padding: 16px; }
-      .grid { grid-template-columns: 1fr; }
-      .span-3, .span-4, .span-6, .span-8, .span-12 {
-        grid-column: span 1;
-      }
-      .header-inner {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-    }
-  </style>
+/* Waiver position filter ribbon */
+.waiver-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.waiver-ribbon button {
+  border: 1px solid #344761;
+  background: #263851;
+  color: var(--muted);
+  padding: 9px 15px;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+.waiver-ribbon button:hover {
+  border-color: var(--orange);
+  color: var(--text);
+}
+.waiver-ribbon button.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #0B162A;
+}
+.waiver-position-section { margin-top: 12px; padding-top: 8px; }
+.waiver-position-heading {
+  color: #B9C7D8;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 8px;
+  margin: 12px 0 4px;
+}
+footer {
+  max-width: 1200px;
+  margin: auto;
+  padding: 10px 24px 30px;
+  color: var(--muted);
+  font-size: .8rem;
+}
+footer a { color: #C77B53; }
+footer a:hover { color: #E0A07D; }
+@media(max-width:800px) {
+  main { padding: 16px; }
+  .grid { grid-template-columns: 1fr; }
+  .span-3, .span-4, .span-6, .span-8, .span-12 { grid-column: span 1; }
+  .header-inner { align-items: flex-start; flex-direction: column; }
+  .card { padding: 18px; }
+  .player-row, .team-row { align-items: flex-start; }
+}
+</style>
 </head>
-
 <body>
+
 <header>
   <div class="header-inner">
     <div class="brand">
-      <h1>🏈 Kodiaks Assistant GM</h1>
+      <h1>Kodiaks Assistant GM</h1>
       <p>The Alberta Cup</p>
     </div>
     <div class="status" id="systemStatus">Connecting...</div>
@@ -219,601 +216,462 @@
 
 <nav>
   <div class="nav-inner">
-    <button class="active" onclick="showPage('dashboard', this)">Dashboard</button>
-    <button onclick="showPage('team', this)">My Team</button>
-    <button onclick="showPage('start-sit', this)">Start/Sit</button>
-    <button onclick="showPage('waivers', this)">Waiver Scouting</button>
-    <button onclick="showPage('league', this)">League Watch</button>
-    <button onclick="showPage('depth', this)">Depth Charts</button>
-    <button onclick="showPage('trade', this)">Trade Desk</button>
+    <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button onclick="showPage('team',this)">My Team</button>
+    <button onclick="showPage('start-sit',this)">Start/Sit</button>
+    <button onclick="showPage('waivers',this)">Waiver Scouting</button>
+    <button onclick="showPage('league',this)">League Watch</button>
+    <button onclick="showPage('depth',this)">Depth Charts</button>
+    <button onclick="showPage('trade',this)">Trade Desk</button>
   </div>
 </nav>
 
 <main>
-  <section id="dashboard" class="page active">
-    <div class="hero">
-      <h2>Good morning, GM.</h2>
-      <p>Here's what deserves your attention.</p>
+<section id="dashboard" class="page active">
+  <div class="hero">
+    <h2>Good morning, GM.</h2>
+    <p>Here's what deserves your attention.</p>
+  </div>
+  <div class="notice" id="connectionNotice">
+    <strong>Checking Yahoo Fantasy connection...</strong>
+    Verifying live roster access.
+  </div>
+  <div class="grid">
+    <div class="card span-3">
+      <h3>League</h3>
+      <div class="big-number">The Alberta Cup</div>
+      <div class="muted">12 teams · PPR</div>
     </div>
-
-    <div class="notice" id="connectionNotice">
-      <strong>Checking Yahoo Fantasy connection...</strong>
-      Verifying live roster access.
+    <div class="card span-3">
+      <h3>Roster Format</h3>
+      <div class="big-number">3 WR</div>
+      <div class="muted">2 RB · 1 TE · 1 FLEX</div>
     </div>
+    <div class="card span-3">
+      <h3>Keepers</h3>
+      <div class="big-number">3</div>
+      <div class="muted">$106 auction budget</div>
+    </div>
+    <div class="card span-3">
+      <h3>Data Status</h3>
+      <div class="big-number" id="dataMode">Checking...</div>
+      <div class="muted">Yahoo roster connection</div>
+    </div>
+    <div class="card span-8">
+      <h3>Assistant GM</h3>
+      <div id="recommendations">Loading roster insights...</div>
+    </div>
+    <div class="card span-4">
+      <h3>Something Changed</h3>
+      <div id="liveChanges"><div class="empty">Checking live roster status...</div></div>
+    </div>
+    <div class="card span-6">
+      <h3>Potential Steals</h3>
+      <div class="empty">Scouting recommendations are not yet connected to live waiver data.</div>
+    </div>
+    <div class="card span-6">
+      <h3>Potential Drops</h3>
+      <div class="empty">Automated drop recommendations are not yet available.</div>
+    </div>
+  </div>
+</section>
 
-    <div class="grid">
-      <div class="card span-3">
-        <h3>League</h3>
-        <div class="big-number">The Alberta Cup</div>
-        <div class="muted">12 teams · PPR</div>
+<section id="team" class="page">
+  <div class="hero">
+    <h2>My Team</h2>
+    <p>Kodiaks roster and roster-management tools.</p>
+  </div>
+  <div class="notice" id="rosterStatus">
+    <strong>Connecting to Yahoo Fantasy...</strong>
+    Retrieving your live Kodiaks roster.
+  </div>
+  <div class="grid">
+    <div class="card span-8">
+      <h3>Kodiaks Roster</h3>
+      <div id="liveRoster"><div class="empty">Loading your live roster...</div></div>
+    </div>
+    <div class="card span-4">
+      <h3>Watchlist</h3>
+      <div id="watchlist">Loading...</div>
+    </div>
+  </div>
+</section>
+
+<section id="start-sit" class="page">
+  <div class="hero">
+    <h2>Start / Sit</h2>
+    <p>Weekly lineup decisions based on matchup, opportunity and trend.</p>
+  </div>
+  <div class="card">
+    <div class="empty">Start/Sit recommendations require weekly projections and matchup data, which are not yet connected.</div>
+  </div>
+</section>
+
+<section id="waivers" class="page">
+  <div class="hero">
+    <h2>Waiver Scouting</h2>
+    <p>Find players worth adding before the rest of the league catches on.</p>
+  </div>
+  <div class="grid">
+    <div class="card span-8">
+      <h3>Available Players</h3>
+      <div class="waiver-ribbon" aria-label="Filter available players by position">
+        <button type="button" class="active" data-waiver-filter="ALL" aria-pressed="true" onclick="filterWaivers('ALL')">ALL</button>
+        <button type="button" data-waiver-filter="QB" aria-pressed="false" onclick="filterWaivers('QB')">QB</button>
+        <button type="button" data-waiver-filter="RB" aria-pressed="false" onclick="filterWaivers('RB')">RB</button>
+        <button type="button" data-waiver-filter="WR" aria-pressed="false" onclick="filterWaivers('WR')">WR</button>
+        <button type="button" data-waiver-filter="TE" aria-pressed="false" onclick="filterWaivers('TE')">TE</button>
+        <button type="button" data-waiver-filter="DEF" aria-pressed="false" onclick="filterWaivers('DEF')">DEF</button>
       </div>
-
-      <div class="card span-3">
-        <h3>Roster Format</h3>
-        <div class="big-number">3 WR</div>
-        <div class="muted">2 RB · 1 TE · 1 FLEX</div>
-      </div>
-
-      <div class="card span-3">
-        <h3>Keepers</h3>
-        <div class="big-number">3</div>
-        <div class="muted">$106 auction budget</div>
-      </div>
-
-      <div class="card span-3">
-        <h3>Data Status</h3>
-        <div class="big-number" id="dataMode">Checking...</div>
-        <div class="muted">Yahoo roster connection</div>
-      </div>
-
-      <div class="card span-8">
-        <h3>🤖 Assistant GM</h3>
-        <div id="recommendations">Loading roster insights...</div>
-      </div>
-
-      <div class="card span-4">
-        <h3>🚨 Something Changed</h3>
-        <div id="liveChanges">
-          <div class="empty">Checking live roster status...</div>
-        </div>
-      </div>
-
-      <div class="card span-6">
-        <h3>💎 Potential Steals</h3>
-        <div class="empty">
-          Scouting recommendations are not yet connected to live waiver data.
-        </div>
-      </div>
-
-      <div class="card span-6">
-        <h3>🗑️ Potential Drops</h3>
-        <div class="empty">
-          Automated drop recommendations are not yet available.
-        </div>
-      </div>
+      <div id="waiverPlayers">Loading...</div>
     </div>
-  </section>
+    <div class="card span-4">
+      <h3>Scouting Philosophy</h3>
+      <p class="muted">Opportunity, role, injuries, depth-chart movement, schedule and long-term upside all matter.</p>
+      <span class="tag">Opportunity</span>
+      <span class="tag">Trend</span>
+      <span class="tag">Upside</span>
+      <span class="tag">Injury</span>
+      <span class="tag">Schedule</span>
+    </div>
+  </div>
+</section>
 
-  <section id="team" class="page">
-    <div class="hero">
-      <h2>My Team</h2>
-      <p>Kodiaks roster and roster-management tools.</p>
-    </div>
+<section id="league" class="page">
+  <div class="hero">
+    <h2>League Watch</h2>
+    <p>Keep tabs on the other eleven teams in The Alberta Cup.</p>
+  </div>
+  <div class="card">
+    <h3>League Teams</h3>
+    <div id="leagueTeams">Loading...</div>
+  </div>
+</section>
 
-    <div class="notice" id="rosterStatus">
-      <strong>Connecting to Yahoo Fantasy...</strong>
-      Retrieving your live Kodiaks roster.
-    </div>
+<section id="depth" class="page">
+  <div class="hero">
+    <h2>NFL Depth Charts</h2>
+    <p>Track backups, handcuffs and opportunity changes.</p>
+  </div>
+  <div class="card"><div id="depthCharts">Loading...</div></div>
+</section>
 
-    <div class="grid">
-      <div class="card span-8">
-        <h3>Kodiaks Roster</h3>
-        <div id="liveRoster">
-          <div class="empty">Loading your live roster...</div>
-        </div>
-      </div>
-
-      <div class="card span-4">
-        <h3>Watchlist</h3>
-        <div id="watchlist">Loading...</div>
-      </div>
+<section id="trade" class="page">
+  <div class="hero">
+    <h2>Trade Desk</h2>
+    <p>Evaluate trades from the perspective of the Kodiaks.</p>
+  </div>
+  <div class="grid">
+    <div class="card span-6">
+      <h3>Trade Analyzer</h3>
+      <div class="empty">Automated trade values are not yet connected to live player projections.</div>
     </div>
-  </section>
-
-  <section id="start-sit" class="page">
-    <div class="hero">
-      <h2>Start / Sit</h2>
-      <p>Weekly lineup decisions based on matchup, opportunity and trend.</p>
+    <div class="card span-6">
+      <h3>What the Assistant GM Will Consider</h3>
+      <p class="muted">Positional value, roster construction, depth, keeper value, player trajectory, schedule, replacement value and league context.</p>
     </div>
-    <div class="card">
-      <div class="empty">
-        Start/Sit recommendations require weekly projections and matchup data,
-        which are not yet connected.
-      </div>
-    </div>
-  </section>
-
-  <section id="waivers" class="page">
-    <div class="hero">
-      <h2>Waiver Scouting</h2>
-      <p>Find players worth adding before the rest of the league catches on.</p>
-    </div>
-    <div class="grid">
-      <div class="card span-8">
-        <h3>Available Players</h3>
-        <div id="waiverPlayers">Loading...</div>
-      </div>
-      <div class="card span-4">
-        <h3>Scouting Philosophy</h3>
-        <p class="muted">
-          Opportunity, role, injuries, depth-chart movement, schedule and
-          long-term upside all matter.
-        </p>
-        <span class="tag">Opportunity</span>
-        <span class="tag">Trend</span>
-        <span class="tag">Upside</span>
-        <span class="tag">Injury</span>
-        <span class="tag">Schedule</span>
-      </div>
-    </div>
-  </section>
-
-  <section id="league" class="page">
-    <div class="hero">
-      <h2>League Watch</h2>
-      <p>Keep tabs on the other eleven teams in The Alberta Cup.</p>
-    </div>
-    <div class="card">
-      <h3>League Teams</h3>
-      <div id="leagueTeams">Loading...</div>
-    </div>
-  </section>
-
-  <section id="depth" class="page">
-    <div class="hero">
-      <h2>NFL Depth Charts</h2>
-      <p>Track backups, handcuffs and opportunity changes.</p>
-    </div>
-    <div class="card">
-      <div id="depthCharts">Loading...</div>
-    </div>
-  </section>
-
-  <section id="trade" class="page">
-    <div class="hero">
-      <h2>Trade Desk</h2>
-      <p>Evaluate trades from the perspective of the Kodiaks.</p>
-    </div>
-    <div class="grid">
-      <div class="card span-6">
-        <h3>Trade Analyzer</h3>
-        <div class="empty">
-          Automated trade values are not yet connected to live player projections.
-        </div>
-      </div>
-      <div class="card span-6">
-        <h3>What the Assistant GM Will Consider</h3>
-        <p class="muted">
-          Positional value, roster construction, depth, keeper value,
-          player trajectory, schedule, replacement value and league context.
-        </p>
-      </div>
-    </div>
-  </section>
+  </div>
+</section>
 </main>
 
 <footer>
   Kodiaks Assistant GM · The Alberta Cup · Version 1.1.1 ·
-  <a href="https://fantasysports.yahoo.com/" target="_blank" rel="noopener noreferrer">
-    Yahoo Fantasy
-  </a>
+  <a href="https://fantasysports.yahoo.com/" target="_blank" rel="noopener noreferrer">Yahoo Fantasy</a>
 </footer>
 
 <script>
 function showPage(pageId, button) {
-  document.querySelectorAll('.page').forEach(page => {
-    page.classList.remove('active');
-  });
-
-  const targetPage = document.getElementById(pageId);
-
-  if (!targetPage) return;
-
-  targetPage.classList.add('active');
-
-  document.querySelectorAll('nav button').forEach(btn => {
-    btn.classList.remove('active');
-  });
-
-  const activeButton = button ||
-    document.querySelector(`nav button[onclick*="${pageId}"]`);
-
-  if (activeButton) {
-    activeButton.classList.add('active');
-  }
-
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(pageId);
+  if (!target) return;
+  target.classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const active = button || document.querySelector(`nav button[onclick*="${pageId}"]`);
+  if (active) active.classList.add('active');
   try {
     sessionStorage.setItem('kodiaksCurrentPage', pageId);
-  } catch (error) {
-    console.warn('Could not save current page:', error);
+  } catch (e) {
+    console.warn('Could not save current page:', e);
   }
 }
 
 function restoreLastPage() {
-  let savedPage = '';
-
+  let saved = '';
   try {
-    savedPage = sessionStorage.getItem('kodiaksCurrentPage') || '';
-  } catch (error) {
-    console.warn('Could not restore last page:', error);
+    saved = sessionStorage.getItem('kodiaksCurrentPage') || '';
+  } catch (e) {
+    console.warn('Could not restore last page:', e);
   }
-
-  if (!savedPage || !document.getElementById(savedPage)) return;
-
-  const savedButton = document.querySelector(
-    `nav button[onclick*="${savedPage}"]`
-  );
-
-  showPage(savedPage, savedButton);
+  if (!saved || !document.getElementById(saved)) return;
+  showPage(saved, document.querySelector(`nav button[onclick*="${saved}"]`));
 }
 
-  async function getJSON(url) {
-    const response = await fetch(url);
+let selectedWaiverPosition = 'ALL';
 
-    if (!response.ok) {
-      throw new Error(`Request failed: ${response.status}`);
-    }
+function filterWaivers(position) {
+  selectedWaiverPosition = position;
+  document.querySelectorAll('.waiver-ribbon button').forEach(tab => {
+    const active = tab.dataset.waiverFilter === position;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-pressed', String(active));
+  });
+  document.querySelectorAll('.waiver-position-section').forEach(section => {
+    section.hidden = position !== 'ALL' && section.dataset.position !== position;
+  });
+}
 
-    return response.json();
+async function getJSON(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  return response.json();
+}
+
+function getRosterEntries(result) {
+  const teamData = result?.data?.fantasy_content?.team;
+  const roster = teamData?.[1]?.roster?.[0];
+  const obj = roster?.players;
+  if (!obj) throw new Error('Unexpected Yahoo roster response format.');
+  return Object.keys(obj)
+    .filter(k => /^\d+$/.test(k))
+    .map(k => obj[k])
+    .map(entry => {
+      const parts = entry.player || [];
+      const details = Array.isArray(parts[0]) ? parts[0] : [];
+      const getField = field => {
+        const item = details.find(d => d && d[field] !== undefined);
+        return item ? item[field] : null;
+      };
+      const selectedData = parts.find(part => part && part.selected_position);
+      const lineup = selectedData?.selected_position?.find(item => item.position)?.position || '';
+      return {
+        name: getField('name')?.full || 'Unknown player',
+        position: getField('display_position') || '',
+        status: getField('status') || '',
+        statusFull: getField('status_full') || '',
+        injury: getField('injury_note') || '',
+        lineup
+      };
+    });
+}
+
+async function loadStatus() {
+  const system = document.getElementById('systemStatus');
+  const mode = document.getElementById('dataMode');
+  const notice = document.getElementById('connectionNotice');
+  try {
+    const s = await getJSON('/api/status');
+    system.textContent = s.ok ? 'Backend Online' : 'Backend Error';
+    mode.textContent = s.yahooRosterConnected ? 'Yahoo Connected' : 'Connection Check';
+    notice.innerHTML = s.yahooRosterConnected
+      ? '<strong>Yahoo Fantasy connected</strong>Your live Kodiaks roster is available.'
+      : '<strong>Yahoo roster not confirmed</strong>Check the connection before relying on roster insights.';
+  } catch (e) {
+    system.textContent = 'Backend Offline';
+    mode.textContent = 'Connection Error';
+    notice.innerHTML = '<strong>Backend connection error</strong>Unable to verify Yahoo connection status.';
+    console.error('Status error:', e);
   }
+}
 
-  function getRosterEntries(result) {
-    const teamData = result?.data?.fantasy_content?.team;
-    const roster = teamData?.[1]?.roster?.[0];
-    const playersObject = roster?.players;
-
-    if (!playersObject) {
-      throw new Error('Unexpected Yahoo roster response format.');
-    }
-
-    return Object.keys(playersObject)
-      .filter(key => /^\d+$/.test(key))
-      .map(key => playersObject[key])
-      .map(entry => {
-        const parts = entry.player || [];
-        const details = Array.isArray(parts[0]) ? parts[0] : [];
-
-        const getField = field => {
-          const item = details.find(
-            detail => detail && detail[field] !== undefined
-          );
-          return item ? item[field] : null;
-        };
-
-        const selectedData = parts.find(
-          part => part && part.selected_position
-        );
-
-        const selectedPosition =
-          selectedData?.selected_position?.find(item => item.position)
-            ?.position || '';
-
-        return {
-          name: getField('name')?.full || 'Unknown player',
-          position: getField('display_position') || '',
-          status: getField('status') || '',
-          statusFull: getField('status_full') || '',
-          injury: getField('injury_note') || '',
-          lineup: selectedPosition
-        };
-      });
+async function loadLiveRoster() {
+  const container = document.getElementById('liveRoster');
+  const status = document.getElementById('rosterStatus');
+  try {
+    const result = await getJSON('/api/yahoo/roster');
+    if (!result.ok) throw new Error(result.message || 'Yahoo roster request failed.');
+    const players = getRosterEntries(result);
+    container.innerHTML = '';
+    players.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      const details = document.createElement('div');
+      const name = document.createElement('div');
+      const info = document.createElement('div');
+      name.className = 'player-name';
+      name.textContent = p.name;
+      info.className = 'player-position';
+      info.textContent = [p.position, p.lineup ? `Lineup: ${p.lineup}` : '', p.statusFull || p.status, p.injury]
+        .filter(Boolean).join(' · ');
+      details.append(name, info);
+      row.append(details);
+      container.append(row);
+    });
+    status.innerHTML = `<strong>Yahoo roster loaded</strong>${players.length} roster entries retrieved successfully.`;
+  } catch (e) {
+    console.error('Live roster error:', e);
+    container.textContent = 'Unable to load your Yahoo roster.';
+    status.innerHTML = '<strong>Roster unavailable</strong>Could not retrieve the live Yahoo roster.';
   }
+}
 
-  async function loadStatus() {
-    const systemStatus = document.getElementById('systemStatus');
-    const dataMode = document.getElementById('dataMode');
-    const notice = document.getElementById('connectionNotice');
-
-    try {
-      const status = await getJSON('/api/status');
-
-      systemStatus.textContent = status.ok
-        ? '🟢 Backend Online'
-        : '🔴 Backend Error';
-
-      dataMode.textContent = status.yahooRosterConnected
-        ? 'Yahoo Connected'
-        : 'Connection Check';
-
-      notice.innerHTML = status.yahooRosterConnected
-        ? '<strong>Yahoo Fantasy connected</strong>Your live Kodiaks roster is available.'
-        : '<strong>Yahoo roster not confirmed</strong>Check the connection before relying on roster insights.';
-    } catch (error) {
-      systemStatus.textContent = '🔴 Backend Offline';
-      dataMode.textContent = 'Connection Error';
-      notice.innerHTML =
-        '<strong>Backend connection error</strong>Unable to verify Yahoo connection status.';
-      console.error('Status error:', error);
-    }
-  }
-
-  async function loadLiveRoster() {
-    const container = document.getElementById('liveRoster');
-    const status = document.getElementById('rosterStatus');
-
-    try {
-      const result = await getJSON('/api/yahoo/roster');
-
-      if (!result.ok) {
-        throw new Error(result.message || 'Yahoo roster request failed.');
-      }
-
-      const players = getRosterEntries(result);
-      container.innerHTML = '';
-
-      players.forEach(player => {
-        const row = document.createElement('div');
-        row.className = 'player-row';
-
-        const details = document.createElement('div');
-        const name = document.createElement('div');
-        name.className = 'player-name';
-        name.textContent = player.name;
-
-        const info = document.createElement('div');
-        info.className = 'player-position';
-        info.textContent = [
-          player.position,
-          player.lineup ? `Lineup: ${player.lineup}` : '',
-          player.statusFull || player.status,
-          player.injury
-        ].filter(Boolean).join(' · ');
-
-        details.appendChild(name);
-        details.appendChild(info);
-        row.appendChild(details);
-        container.appendChild(row);
-      });
-
-      status.innerHTML =
-        `<strong>Yahoo roster loaded</strong>${players.length} roster entries retrieved successfully.`;
-    } catch (error) {
-      console.error('Live roster error:', error);
-      container.textContent = 'Unable to load your Yahoo roster.';
-      status.innerHTML =
-        '<strong>Roster unavailable</strong>Could not retrieve the live Yahoo roster.';
-    }
-  }
-
-  async function loadLiveChanges() {
-    const container = document.getElementById('liveChanges');
-
-    try {
-      const result = await getJSON('/api/yahoo/roster');
-
-      if (!result.ok) {
-        throw new Error(result.message || 'Yahoo roster request failed.');
-      }
-
-      const players = getRosterEntries(result);
-      const alerts = [];
-
-      players.forEach(player => {
-        if (['IR', 'O', 'PUP', 'SUSP'].includes(player.status)) {
-          alerts.push({
-            label: 'Roster Status',
-            name: player.name,
-            detail: player.injury ||
-              player.statusFull ||
-              `Yahoo status: ${player.status}`
-          });
-        } else if (['Q', 'D'].includes(player.status)) {
-          alerts.push({
-            label: 'Availability Watch',
-            name: player.name,
-            detail: player.injury ||
-              player.statusFull ||
-              `Yahoo status: ${player.status}`
-          });
-        }
-      });
-
-      container.innerHTML = '';
-
-      if (!alerts.length) {
-        container.textContent =
-          'No injury or availability alerts found in the current Yahoo roster data.';
-        return;
-      }
-
-      alerts.forEach(alert => {
-        const div = document.createElement('div');
-        div.className = 'recommendation';
-
-        const label = document.createElement('div');
-        label.className = 'rec-type';
-        label.textContent = alert.label;
-
-        const name = document.createElement('strong');
-        name.textContent = alert.name;
-
-        const detail = document.createElement('div');
-        detail.className = 'muted';
-        detail.textContent = alert.detail;
-
-        div.appendChild(label);
-        div.appendChild(name);
-        div.appendChild(detail);
-        container.appendChild(div);
-      });
-    } catch (error) {
-      console.error('Live changes error:', error);
-      container.textContent =
-        'Unable to check live roster status right now.';
-    }
-  }
-
-  async function loadRecommendations() {
-    const container = document.getElementById('recommendations');
-
-    try {
-      const result = await getJSON('/api/yahoo/roster');
-
-      if (!result.ok) {
-        throw new Error(result.message || 'Yahoo roster request failed.');
-      }
-
-      const players = getRosterEntries(result);
-      const recommendations = [];
-
-      const unavailable = players.filter(player =>
-        ['O', 'IR', 'PUP', 'SUSP'].includes(player.status)
-      );
-
-      if (unavailable.length) {
-        recommendations.push({
-          type: 'ROSTER ALERT',
-          title: 'Review player availability',
-          description: unavailable.map(player =>
-            `${player.name} (${player.statusFull || player.status})`
-          ).join(', ')
+async function loadLiveChanges() {
+  const container = document.getElementById('liveChanges');
+  try {
+    const result = await getJSON('/api/yahoo/roster');
+    if (!result.ok) throw new Error(result.message || 'Yahoo roster request failed.');
+    const alerts = [];
+    getRosterEntries(result).forEach(p => {
+      if (['IR', 'O', 'PUP', 'SUSP'].includes(p.status)) {
+        alerts.push({
+          label: 'Roster Status',
+          name: p.name,
+          detail: p.injury || p.statusFull || `Yahoo status: ${p.status}`
+        });
+      } else if (['Q', 'D'].includes(p.status)) {
+        alerts.push({
+          label: 'Availability Watch',
+          name: p.name,
+          detail: p.injury || p.statusFull || `Yahoo status: ${p.status}`
         });
       }
-
-      const questionable = players.filter(player =>
-        ['Q', 'D'].includes(player.status)
-      );
-
-      if (questionable.length) {
-        recommendations.push({
-          type: 'AVAILABILITY WATCH',
-          title: 'Check questionable players',
-          description: questionable.map(player =>
-            `${player.name}${player.injury ? ` — ${player.injury}` : ''}`
-          ).join(', ')
-        });
-      }
-
-      const bench = players.filter(player => player.lineup === 'BN');
-
-      recommendations.push({
-        type: 'LINEUP CHECK',
-        title: 'Check your bench before kickoff',
-        description: bench.length
-          ? `${bench.length} players are currently on your bench. Review matchups, injuries and bye weeks before setting your lineup.`
-          : 'Review your lineup assignments and confirm every starter is available.'
-      });
-
-      container.innerHTML = '';
-
-      recommendations.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'recommendation';
-
-        const type = document.createElement('div');
-        type.className = 'rec-type';
-        type.textContent = item.type;
-
-        const title = document.createElement('strong');
-        title.textContent = item.title;
-
-        const description = document.createElement('div');
-        description.className = 'muted';
-        description.textContent = item.description;
-
-        div.appendChild(type);
-        div.appendChild(title);
-        div.appendChild(description);
-        container.appendChild(div);
-      });
-    } catch (error) {
-      console.error('Dashboard recommendations error:', error);
-      container.textContent = 'Unable to load live roster insights.';
+    });
+    container.innerHTML = '';
+    if (!alerts.length) {
+      container.textContent = 'No injury or availability alerts found in the current Yahoo roster data.';
+      return;
     }
+    alerts.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'recommendation';
+      const label = document.createElement('div');
+      label.className = 'rec-type';
+      label.textContent = a.label;
+      const name = document.createElement('strong');
+      name.textContent = a.name;
+      const detail = document.createElement('div');
+      detail.className = 'muted';
+      detail.textContent = a.detail;
+      div.append(label, name, detail);
+      container.append(div);
+    });
+  } catch (e) {
+    console.error('Live changes error:', e);
+    container.textContent = 'Unable to check live roster status right now.';
   }
+}
 
-  async function loadWatchlist() {
-    const container = document.getElementById('watchlist');
-
-    try {
-      const data = await getJSON('/api/team/kodiaks');
-      container.innerHTML = '';
-
-      if (!Array.isArray(data.watchlist) || !data.watchlist.length) {
-        container.textContent = 'No watchlist players available.';
-        return;
-      }
-
-      data.watchlist.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'player-row';
-
-        const details = document.createElement('div');
-        const name = document.createElement('div');
-        name.className = 'player-name';
-        name.textContent = item.player || 'Unknown player';
-
-        const position = document.createElement('div');
-        position.className = 'player-position';
-        position.textContent = item.position || '';
-
-        const tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.textContent = item.category || 'Watch';
-
-        details.appendChild(name);
-        details.appendChild(position);
-        row.appendChild(details);
-        row.appendChild(tag);
-        container.appendChild(row);
+async function loadRecommendations() {
+  const container = document.getElementById('recommendations');
+  try {
+    const result = await getJSON('/api/yahoo/roster');
+    if (!result.ok) throw new Error(result.message || 'Yahoo roster request failed.');
+    const players = getRosterEntries(result);
+    const items = [];
+    const unavailable = players.filter(p => ['O', 'IR', 'PUP', 'SUSP'].includes(p.status));
+    if (unavailable.length) {
+      items.push({
+        type: 'ROSTER ALERT',
+        title: 'Review player availability',
+        description: unavailable.map(p => `${p.name} (${p.statusFull || p.status})`).join(', ')
       });
-    } catch (error) {
-      console.error('Watchlist error:', error);
-      container.textContent = 'Unable to load watchlist.';
     }
+    const questionable = players.filter(p => ['Q', 'D'].includes(p.status));
+    if (questionable.length) {
+      items.push({
+        type: 'AVAILABILITY WATCH',
+        title: 'Check questionable players',
+        description: questionable.map(p => `${p.name}${p.injury ? ` — ${p.injury}` : ''}`).join(', ')
+      });
+    }
+    const bench = players.filter(p => p.lineup === 'BN');
+    items.push({
+      type: 'LINEUP CHECK',
+      title: 'Check your bench before kickoff',
+      description: bench.length
+        ? `${bench.length} players are currently on your bench. Review matchups, injuries and bye weeks before setting your lineup.`
+        : 'Review your lineup assignments and confirm every starter is available.'
+    });
+    container.innerHTML = '';
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'recommendation';
+      const type = document.createElement('div');
+      type.className = 'rec-type';
+      type.textContent = item.type;
+      const title = document.createElement('strong');
+      title.textContent = item.title;
+      const desc = document.createElement('div');
+      desc.className = 'muted';
+      desc.textContent = item.description;
+      div.append(type, title, desc);
+      container.append(div);
+    });
+  } catch (e) {
+    console.error('Dashboard recommendations error:', e);
+    container.textContent = 'Unable to load live roster insights.';
   }
+}
+
+async function loadWatchlist() {
+  const container = document.getElementById('watchlist');
+  try {
+    const data = await getJSON('/api/team/kodiaks');
+    container.innerHTML = '';
+    if (!Array.isArray(data.watchlist) || !data.watchlist.length) {
+      container.textContent = 'No watchlist players available.';
+      return;
+    }
+    data.watchlist.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      const details = document.createElement('div');
+      const name = document.createElement('div');
+      const pos = document.createElement('div');
+      const tag = document.createElement('span');
+      name.className = 'player-name';
+      name.textContent = item.player || 'Unknown player';
+      pos.className = 'player-position';
+      pos.textContent = item.position || '';
+      tag.className = 'tag';
+      tag.textContent = item.category || 'Watch';
+      details.append(name, pos);
+      row.append(details, tag);
+      container.append(row);
+    });
+  } catch (e) {
+    console.error('Watchlist error:', e);
+    container.textContent = 'Unable to load watchlist.';
+  }
+}
+
+function normalizeWaiverPosition(position) {
+  const ps = String(position || '').split(',').map(p => p.trim().toUpperCase());
+  if (ps.some(p => ['DEF', 'D/ST', 'DST'].includes(p))) return 'DEF';
+  return ps.find(p => ['QB', 'RB', 'WR', 'TE'].includes(p)) || ps[0] || '';
+}
 
 async function loadWaivers() {
   const container = document.getElementById('waiverPlayers');
   container.textContent = 'Loading live Yahoo players...';
-
   try {
     const result = await getJSON('/api/waivers');
-
     if (!result.ok || !Array.isArray(result.players)) {
       throw new Error(result.error || 'Yahoo player data is missing.');
     }
-
-    const players = result.players
-      .map(player => {
-        const name = player.name?.full || player.name || 'Unknown player';
-        const position = player.display_position || player.position || '';
-
-        return {
-          name,
-          position,
-          team: player.editorial_team_abbr || player.team || '',
-          status: player.status_full || player.status || 'Available',
-          injury: player.injury_note || '',
-          bye: player.bye_weeks?.week || ''
-        };
-      })
-      .filter(player =>
-        ['QB', 'RB', 'WR', 'TE'].includes(player.position)
-      );
+    const players = result.players.map(p => {
+      const raw = p.display_position || p.position || '';
+      return {
+        name: p.name?.full || p.name || 'Unknown player',
+        position: raw,
+        positionCode: normalizeWaiverPosition(raw),
+        team: p.editorial_team_abbr || p.team || '',
+        status: p.status_full || p.status || 'Available',
+        injury: p.injury_note || '',
+        bye: p.bye_weeks?.week || ''
+      };
+    }).filter(p => ['QB', 'RB', 'WR', 'TE', 'DEF'].includes(p.positionCode));
 
     container.replaceChildren();
-
     const heading = document.createElement('p');
     heading.className = 'muted';
-    heading.textContent =
-      `Live Yahoo data · ${players.length} skill-position players`;
-    container.appendChild(heading);
+    heading.textContent = `Live Yahoo data · ${players.length} available players`;
+    container.append(heading);
 
     if (!players.length) {
       const empty = document.createElement('p');
-      empty.textContent = 'No active skill-position free agents found.';
-      container.appendChild(empty);
+      empty.className = 'empty';
+      empty.textContent = 'No active free agents found.';
+      container.append(empty);
       return;
     }
 
@@ -821,168 +679,139 @@ async function loadWaivers() {
       { code: 'QB', label: 'Quarterbacks' },
       { code: 'RB', label: 'Running Backs' },
       { code: 'WR', label: 'Wide Receivers' },
-      { code: 'TE', label: 'Tight Ends' }
+      { code: 'TE', label: 'Tight Ends' },
+      { code: 'DEF', label: 'Defences' }
     ];
 
-    for (const position of positions) {
-      const positionPlayers = players.filter(player =>
-        player.position.split(',').map(p => p.trim()).includes(position.code)
-      );
-
+    for (const pos of positions) {
+      const list = players.filter(p => p.positionCode === pos.code);
       const section = document.createElement('section');
       section.className = 'waiver-position-section';
+      section.dataset.position = pos.code;
 
-      const sectionHeading = document.createElement('h3');
-      sectionHeading.className = 'waiver-position-heading';
-      sectionHeading.textContent =
-        `${position.label} (${positionPlayers.length})`;
+      const title = document.createElement('h3');
+      title.className = 'waiver-position-heading';
+      title.textContent = `${pos.label} (${list.length})`;
+      section.append(title);
 
-      section.appendChild(sectionHeading);
-
-      if (!positionPlayers.length) {
+      if (!list.length) {
         const empty = document.createElement('p');
         empty.className = 'muted';
         empty.textContent = 'No available players at this position.';
-        section.appendChild(empty);
+        section.append(empty);
       }
 
-      for (const player of positionPlayers) {
+      for (const p of list) {
         const row = document.createElement('div');
         row.className = 'player-row';
-
         const details = document.createElement('div');
-
         const name = document.createElement('div');
-        name.className = 'player-name';
-        name.textContent = player.name;
-
         const info = document.createElement('div');
+        name.className = 'player-name';
+        name.textContent = p.name;
         info.className = 'player-position';
-        info.textContent = [
-          player.position,
-          player.team,
-          player.bye ? `Bye: Week ${player.bye}` : ''
-        ].filter(Boolean).join(' · ');
+        info.textContent = [p.position, p.team, p.bye ? `Bye: Week ${p.bye}` : '']
+          .filter(Boolean).join(' · ');
+        details.append(name, info);
 
-        details.appendChild(name);
-        details.appendChild(info);
-
-        if (player.injury || player.status !== 'Available') {
+        if (p.injury || p.status !== 'Available') {
           const note = document.createElement('div');
           note.className = 'muted';
-          note.textContent = [player.status, player.injury]
-            .filter(Boolean).join(' · ');
-          details.appendChild(note);
+          note.textContent = [p.status, p.injury].filter(Boolean).join(' · ');
+          details.append(note);
         }
 
         const tag = document.createElement('span');
         tag.className = 'tag';
         tag.textContent = 'Yahoo Available';
-
-        row.appendChild(details);
-        row.appendChild(tag);
-        section.appendChild(row);
+        row.append(details, tag);
+        section.append(row);
       }
-
-      container.appendChild(section);
+      container.append(section);
     }
-  } catch (error) {
-    console.error('Waivers error:', error);
+    filterWaivers(selectedWaiverPosition);
+  } catch (e) {
+    console.error('Waivers error:', e);
     container.textContent = 'Unable to load live Yahoo waiver data.';
   }
 }
 
-  async function loadTeams() {
-    const container = document.getElementById('leagueTeams');
-
-    try {
-      const data = await getJSON('/api/teams');
-      container.innerHTML = '';
-
-      if (!Array.isArray(data.teams) || !data.teams.length) {
-        container.textContent = 'No league team data available.';
-        return;
-      }
-
-      data.teams.forEach(team => {
-        const row = document.createElement('div');
-        row.className = 'team-row';
-
-        const details = document.createElement('div');
-        const name = document.createElement('div');
-        name.className = 'player-name';
-        name.textContent = team.name || 'Unknown team';
-
-        const owner = document.createElement('div');
-        owner.className = 'player-position';
-        owner.textContent = team.owner || '';
-
-        const record = document.createElement('span');
-        record.className = 'tag';
-        record.textContent = team.record || '';
-
-        details.appendChild(name);
-        details.appendChild(owner);
-        row.appendChild(details);
-        row.appendChild(record);
-        container.appendChild(row);
-      });
-    } catch (error) {
-      console.error('League teams error:', error);
-      container.textContent = 'Unable to load league data.';
+async function loadTeams() {
+  const container = document.getElementById('leagueTeams');
+  try {
+    const data = await getJSON('/api/teams');
+    container.innerHTML = '';
+    if (!Array.isArray(data.teams) || !data.teams.length) {
+      container.textContent = 'No league team data available.';
+      return;
     }
+    data.teams.forEach(team => {
+      const row = document.createElement('div');
+      row.className = 'team-row';
+      const details = document.createElement('div');
+      const name = document.createElement('div');
+      const owner = document.createElement('div');
+      const tag = document.createElement('span');
+      name.className = 'player-name';
+      name.textContent = team.name || 'Unknown team';
+      owner.className = 'player-position';
+      owner.textContent = team.owner || '';
+      tag.className = 'tag';
+      tag.textContent = team.record || '';
+      details.append(name, owner);
+      row.append(details, tag);
+      container.append(row);
+    });
+  } catch (e) {
+    console.error('League teams error:', e);
+    container.textContent = 'Unable to load league data.';
   }
+}
 
-  async function loadDepthCharts() {
-    const container = document.getElementById('depthCharts');
-
-    try {
-      const data = await getJSON('/api/depth-charts');
-      container.innerHTML = '';
-
-      if (!Array.isArray(data.depthCharts) || !data.depthCharts.length) {
-        container.textContent = 'No depth chart data available.';
-        return;
-      }
-
-      data.depthCharts.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'player-row';
-
-        const details = document.createElement('div');
-        const name = document.createElement('div');
-        name.className = 'player-name';
-        name.textContent = `${item.team || ''} ${item.position || ''}`.trim();
-
-        const note = document.createElement('div');
-        note.className = 'player-position';
-        note.textContent = item.note || '';
-
-        details.appendChild(name);
-        details.appendChild(note);
-        row.appendChild(details);
-        container.appendChild(row);
-      });
-    } catch (error) {
-      console.error('Depth charts error:', error);
-      container.textContent = 'Unable to load depth charts.';
+async function loadDepthCharts() {
+  const container = document.getElementById('depthCharts');
+  try {
+    const data = await getJSON('/api/depth-charts');
+    container.innerHTML = '';
+    if (!Array.isArray(data.depthCharts) || !data.depthCharts.length) {
+      container.textContent = 'No depth chart data available.';
+      return;
     }
+    data.depthCharts.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      const details = document.createElement('div');
+      const name = document.createElement('div');
+      const note = document.createElement('div');
+      name.className = 'player-name';
+      name.textContent = `${item.team || ''} ${item.position || ''}`.trim();
+      note.className = 'player-position';
+      note.textContent = item.note || '';
+      details.append(name, note);
+      row.append(details);
+      container.append(row);
+    });
+  } catch (e) {
+    console.error('Depth charts error:', e);
+    container.textContent = 'Unable to load depth charts.';
   }
+}
 
-  async function initializeApp() {
-    await Promise.allSettled([
-      loadStatus(),
-      loadRecommendations(),
-      loadWatchlist(),
-      loadWaivers(),
-      loadTeams(),
-      loadDepthCharts(),
-      loadLiveRoster(),
-      loadLiveChanges()
-    ]);
-  }
+async function initializeApp() {
+  await Promise.allSettled([
+    loadStatus(),
+    loadRecommendations(),
+    loadWatchlist(),
+    loadWaivers(),
+    loadTeams(),
+    loadDepthCharts(),
+    loadLiveRoster(),
+    loadLiveChanges()
+  ]);
+}
+
 restoreLastPage();
-  initializeApp();
+initializeApp();
 </script>
 </body>
 </html>
