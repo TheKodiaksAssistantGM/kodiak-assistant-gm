@@ -514,6 +514,10 @@ app.get('/api/waivers', async (_req, res) => {
     }
 
     const data = await response.json();
+    console.log(
+  'Yahoo waiver response sample:',
+  JSON.stringify(data?.fantasy_content?.league?.[1]?.players?.[0] ?? null)
+);
 
     const { latestWeek, activeYahooIds } =
       await getActiveNflYahooIds();
