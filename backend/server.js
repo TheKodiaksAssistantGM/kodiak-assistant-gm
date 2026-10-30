@@ -593,7 +593,7 @@ app.get('/api/waivers', async (_req, res) => {
       message: 'Active NFL free agents retrieved.',
       rosterWeek: latestWeek,
       yahooFreeAgentCount,
-      activeFreeAgentCount: activePlayers.length,
+     activeFreeAgentCount: Math.min(activePlayers.length, 25),
       players: activePlayers.slice(0, 25)
     });
   } catch (error) {
