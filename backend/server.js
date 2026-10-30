@@ -22,6 +22,111 @@ app.use(cookieParser());
 
 const PORT = process.env.PORT || 10000;
 
+
+const NFL_ROSTER_CSV_URL =
+  'https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_2026.csv';
+
+async function getActiveNflYahooIds() {
+  const response = await fetch(NFL_ROSTER_CSV_URL);
+
+  if (!response.ok) {
+    throw new Error(
+      `NFL roster data request failed: HTTP ${response.status}`
+    );
+  }
+
+  const csv = await response.text();
+  const lines = csv.split(/\r?\n/).filter(Boolean);
+
+  if (lines.length < 2) {
+    throw new Error('NFL roster CSV is empty.');
+  }
+
+  // Parse CSV fields while respecting quoted commas.
+  function parseCsvRow(line) {
+    const fields = [];
+    let field = '';
+    let quoted = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      if (char === '"') {
+        if (quoted && line[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (char === ',' && !quoted) {
+        fields.push(field);
+        field = '';
+      } else {
+        field += char;
+      }
+    }
+
+    fields.push(field);
+    return fields;
+  }
+
+  const headers = parseCsvRow(lines[0]);
+  const index = Object.fromEntries(
+    headers.map((header, i) => [header, i])
+  );
+
+  for (const column of [
+    'season',
+    'week',
+    'status',
+    'yahoo_id'
+  ]) {
+    if (index[column] === undefined) {
+      throw new Error(`NFL roster CSV is missing ${column}.`);
+    }
+  }
+
+  const rows = lines.slice(1).map(line => {
+    const values = parseCsvRow(line);
+    return {
+      season: Number(values[index.season]),
+      week: Number(values[index.week]),
+      status: (values[index.status] || '').trim(),
+      yahooId: (values[index.yahoo_id] || '').trim(),
+      gameType: index.game_type === undefined
+        ? ''
+        : (values[index.game_type] || '').trim()
+    };
+  });
+
+  const seasonRows = rows.filter(
+    row => row.season === 2026 && row.yahooId
+  );
+
+  if (!seasonRows.length) {
+    throw new Error('No 2026 NFL roster records with Yahoo IDs found.');
+  }
+
+  const latestWeek = Math.max(
+    ...seasonRows.map(row => row.week).filter(Number.isFinite)
+  );
+
+  const activeYahooIds = new Set(
+    seasonRows
+      .filter(row =>
+        row.week === latestWeek &&
+        row.status === 'ACT' &&
+        (!row.gameType || row.gameType === 'REG')
+      )
+      .map(row => row.yahooId)
+  );
+
+  return {
+    latestWeek,
+    activeYahooIds
+  };
+}
+
 const BASE_URL = (
   process.env.BASE_URL ||
   'https://kodiak-assistant-gm-production.up.railway.app'
