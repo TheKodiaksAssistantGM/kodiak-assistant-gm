@@ -410,19 +410,52 @@
 </footer>
 
 <script>
-  function showPage(pageId, button) {
-    document.querySelectorAll('.page').forEach(page => {
-      page.classList.remove('active');
-    });
+function showPage(pageId, button) {
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
 
-    document.getElementById(pageId).classList.add('active');
+  const targetPage = document.getElementById(pageId);
 
-    document.querySelectorAll('nav button').forEach(btn => {
-      btn.classList.remove('active');
-    });
+  if (!targetPage) return;
 
-    button.classList.add('active');
+  targetPage.classList.add('active');
+
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  const activeButton = button ||
+    document.querySelector(`nav button[onclick*="${pageId}"]`);
+
+  if (activeButton) {
+    activeButton.classList.add('active');
   }
+
+  try {
+    sessionStorage.setItem('kodiaksCurrentPage', pageId);
+  } catch (error) {
+    console.warn('Could not save current page:', error);
+  }
+}
+
+function restoreLastPage() {
+  let savedPage = '';
+
+  try {
+    savedPage = sessionStorage.getItem('kodiaksCurrentPage') || '';
+  } catch (error) {
+    console.warn('Could not restore last page:', error);
+  }
+
+  if (!savedPage || !document.getElementById(savedPage)) return;
+
+  const savedButton = document.querySelector(
+    `nav button[onclick*="${savedPage}"]`
+  );
+
+  showPage(savedPage, savedButton);
+}
 
   async function getJSON(url) {
     const response = await fetch(url);
