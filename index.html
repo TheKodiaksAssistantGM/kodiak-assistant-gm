@@ -265,10 +265,13 @@ footer a:hover { color: #E0A07D; }
       <h3>Something Changed</h3>
       <div id="liveChanges"><div class="empty">Checking live roster status...</div></div>
     </div>
-    <div class="card span-6">
-      <h3>Potential Steals</h3>
-      <div class="empty">Scouting recommendations are not yet connected to live waiver data.</div>
-    </div>
+ <div class="card span-6">
+  <h3>Potential Steals</h3>
+  <p class="muted">Live candidates from Yahoo free agents.</p>
+  <div id="potentialSteals">
+    <div class="empty">Loading scouting shortlist...</div>
+  </div>
+</div>
     <div class="card span-6">
       <h3>Potential Drops</h3>
       <div class="empty">Automated drop recommendations are not yet available.</div>
@@ -797,10 +800,107 @@ async function loadDepthCharts() {
   }
 }
 
+async function loadPotentialSteals() {
+  const container = document.getElementById('potentialSteals');
+  if (!container) return;
+
+  container.textContent = 'Loading live scouting candidates...';
+
+  try {
+    const result = await getJSON('/api/waivers');
+
+    if (!result.ok || !Array.isArray(result.players)) {
+      throw new Error('Unable to retrieve waiver candidates.');
+    }
+
+    const candidates = result.players.map(p => {
+      const rawPosition = p.display_position || p.position || '';
+      const positions = String(rawPosition)
+        .split(',')
+        .map(x => x.trim().toUpperCase());
+
+      let position = positions.find(x =>
+        ['QB', 'RB', 'WR', 'TE'].includes(x)
+      );
+
+      if (positions.some(x => ['DEF', 'D/ST', 'DST'].includes(x))) {
+        position = 'DEF';
+      }
+
+      return {
+        name: p.name?.full || p.name || 'Unknown player',
+        position: position || rawPosition,
+        team: p.editorial_team_abbr || p.team || '',
+        status: p.status_full || p.status || 'Available',
+        injury: p.injury_note || ''
+      };
+    }).filter(p =>
+      ['QB', 'RB', 'WR', 'TE', 'DEF'].includes(p.position)
+    );
+
+    container.replaceChildren();
+
+    const count = document.createElement('p');
+    count.className = 'muted';
+    count.textContent = `${candidates.length} live free-agent candidates`;
+    container.append(count);
+
+    if (!candidates.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'No candidates available right now.';
+      container.append(empty);
+      return;
+    }
+
+    candidates.slice(0, 8).forEach(player => {
+      const row = document.createElement('div');
+      row.className = 'recommendation';
+
+      const type = document.createElement('div');
+      type.className = 'rec-type';
+      type.textContent =
+        `${player.position} · ${player.team || 'NFL team unavailable'}`;
+
+      const name = document.createElement('strong');
+      name.textContent = player.name;
+
+      const details = document.createElement('div');
+      details.className = 'muted';
+      details.textContent = [player.status, player.injury]
+        .filter(Boolean)
+        .join(' · ');
+
+      row.append(type, name, details);
+      container.append(row);
+    });
+
+    if (candidates.length > 8) {
+      const note = document.createElement('p');
+      note.className = 'muted';
+      note.textContent =
+        `Showing 8 of ${candidates.length}. See Waiver Scouting for the full list.`;
+      container.append(note);
+    }
+
+    const disclaimer = document.createElement('p');
+    disclaimer.className = 'muted';
+    disclaimer.textContent =
+      'Early scouting shortlist, not a projected ranking.';
+    container.append(disclaimer);
+
+  } catch (error) {
+    console.error('Potential Steals error:', error);
+    container.textContent =
+      'Unable to load scouting candidates. Check the Waiver Scouting page.';
+  }
+}
+  
 async function initializeApp() {
   await Promise.allSettled([
     loadStatus(),
     loadRecommendations(),
+    loadPotentialSteals(),
     loadWatchlist(),
     loadWaivers(),
     loadTeams(),
