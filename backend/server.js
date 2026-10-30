@@ -490,7 +490,6 @@ app.get('/api/nfl-roster-check', async (_req, res) => {
 // PLAYERS / WAIVERS
 // -------------------------------------------------------
 
-
 app.get('/api/waivers', async (_req, res) => {
   try {
     const accessToken = await getSavedYahooAccessToken();
@@ -562,18 +561,20 @@ app.get('/api/waivers', async (_req, res) => {
 
       for (const player of playerEntries) {
         const yahooId = String(player?.player_id ?? '');
+        const position = player.display_position || '';
+        const isDefense = ['DEF', 'D/ST', 'DST'].includes(position);
 
         if (
           !yahooId ||
           seenYahooIds.has(yahooId) ||
-          !activeYahooIds.has(yahooId)
+          (!isDefense && !activeYahooIds.has(yahooId))
         ) {
           continue;
         }
 
-        const position = player.display_position || '';
-
-        if (!['QB', 'RB', 'WR', 'TE'].includes(position)) {
+        if (
+          !['QB', 'RB', 'WR', 'TE', 'DEF', 'D/ST', 'DST'].includes(position)
+        ) {
           continue;
         }
 
@@ -593,7 +594,7 @@ app.get('/api/waivers', async (_req, res) => {
       message: 'Active NFL free agents retrieved.',
       rosterWeek: latestWeek,
       yahooFreeAgentCount,
-     activeFreeAgentCount: Math.min(activePlayers.length, 25),
+      activeFreeAgentCount: Math.min(activePlayers.length, 25),
       players: activePlayers.slice(0, 25)
     });
   } catch (error) {
