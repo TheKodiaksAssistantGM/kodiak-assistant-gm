@@ -521,16 +521,31 @@ app.get('/api/waivers', async (_req, res) => {
 
     const { latestWeek, activeYahooIds } =
       await getActiveNflYahooIds();
+  
+const playersObject =
+  data?.fantasy_content?.league?.[1]?.players;
 
-    const playersObject =
-      data?.fantasy_content?.league?.[1]?.players;
+const playerEntries = playersObject
+  ? Object.entries(playersObject)
+      .filter(([key]) => key !== 'count')
+      .flatMap(([, value]) => {
+        const playerData = value?.player?.[0];
 
-    const playerEntries = playersObject
-      ? Object.entries(playersObject)
-          .filter(([key]) => key !== 'count')
-          .map(([, value]) => value?.player?.[0])
-          .filter(Boolean)
-      : [];
+        if (!Array.isArray(playerData)) {
+          return [];
+        }
+
+        const player = {};
+
+        for (const field of playerData) {
+          if (field && typeof field === 'object' && !Array.isArray(field)) {
+            Object.assign(player, field);
+          }
+        }
+
+        return Object.keys(player).length ? [player] : [];
+      })
+  : [];
 
     const filteredPlayers = playerEntries.filter(player => {
       const yahooId = String(
