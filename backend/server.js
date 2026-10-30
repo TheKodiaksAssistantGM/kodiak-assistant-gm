@@ -490,70 +490,101 @@ app.get('/api/nfl-roster-check', async (_req, res) => {
 // PLAYERS / WAIVERS
 // -------------------------------------------------------
 
+
 app.get('/api/waivers', async (_req, res) => {
   try {
     const accessToken = await getSavedYahooAccessToken();
 
-    const response = await fetch(
-      'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=FA;start=0;count=25?format=json',
-      {
+    const { latestWeek, activeYahooIds } =
+      await getActiveNflYahooIds();
+
+    const activePlayers = [];
+    const seenYahooIds = new Set();
+    let yahooFreeAgentCount = 0;
+
+    const batchSize = 25;
+    const maxBatches = 10;
+
+    for (let batch = 0; batch < maxBatches; batch++) {
+      const start = batch * batchSize;
+
+      const url =
+        `https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=FA;start=${start};count=${batchSize};sort=AR?format=json`;
+
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           Accept: 'application/json'
         }
-      }
-    );
-
-    if (!response.ok) {
-      console.error('Yahoo waiver request failed:', response.status);
-
-      return res.status(502).json({
-        ok: false,
-        error: `Yahoo API returned HTTP ${response.status}.`
       });
-    }
 
-    const data = await response.json();
-    console.log(
-  'Yahoo waiver response sample:',
-  JSON.stringify(data?.fantasy_content?.league?.[1]?.players?.[0] ?? null)
-);
+      if (!response.ok) {
+        console.error('Yahoo waiver request failed:', response.status);
 
-    const { latestWeek, activeYahooIds } =
-      await getActiveNflYahooIds();
-  
-const playersObject =
-  data?.fantasy_content?.league?.[1]?.players;
+        return res.status(502).json({
+          ok: false,
+          error: `Yahoo API returned HTTP ${response.status}.`
+        });
+      }
 
-const playerEntries = playersObject
-  ? Object.entries(playersObject)
-      .filter(([key]) => key !== 'count')
-      .flatMap(([, value]) => {
-        const playerData = value?.player?.[0];
+      const data = await response.json();
 
-        if (!Array.isArray(playerData)) {
-          return [];
-        }
+      const playersObject =
+        data?.fantasy_content?.league?.[1]?.players;
 
-        const player = {};
+      if (!playersObject) break;
 
-        for (const field of playerData) {
-          if (field && typeof field === 'object' && !Array.isArray(field)) {
-            Object.assign(player, field);
+      const playerEntries = Object.entries(playersObject)
+        .filter(([key]) => key !== 'count')
+        .flatMap(([, value]) => {
+          const playerData = value?.player?.[0];
+
+          if (!Array.isArray(playerData)) return [];
+
+          const player = {};
+
+          for (const field of playerData) {
+            if (
+              field &&
+              typeof field === 'object' &&
+              !Array.isArray(field)
+            ) {
+              Object.assign(player, field);
+            }
           }
+
+          return Object.keys(player).length ? [player] : [];
+        });
+
+      yahooFreeAgentCount += playerEntries.length;
+
+      if (playerEntries.length === 0) break;
+
+      for (const player of playerEntries) {
+        const yahooId = String(player?.player_id ?? '');
+
+        if (
+          !yahooId ||
+          seenYahooIds.has(yahooId) ||
+          !activeYahooIds.has(yahooId)
+        ) {
+          continue;
         }
 
-        return Object.keys(player).length ? [player] : [];
-      })
-  : [];
+        const position = player.display_position || '';
 
-    const filteredPlayers = playerEntries.filter(player => {
-      const yahooId = String(
-        player?.player_id ?? ''
-      );
+        if (!['QB', 'RB', 'WR', 'TE'].includes(position)) {
+          continue;
+        }
 
-      return yahooId && activeYahooIds.has(yahooId);
-    });
+        seenYahooIds.add(yahooId);
+        activePlayers.push(player);
+      }
+
+      if (activePlayers.length >= 25) break;
+
+      if (playerEntries.length < batchSize) break;
+    }
 
     return res.json({
       ok: true,
@@ -561,9 +592,9 @@ const playerEntries = playersObject
       source: 'Yahoo Fantasy API + nflverse',
       message: 'Active NFL free agents retrieved.',
       rosterWeek: latestWeek,
-      yahooFreeAgentCount: playerEntries.length,
-      activeFreeAgentCount: filteredPlayers.length,
-      players: filteredPlayers
+      yahooFreeAgentCount,
+      activeFreeAgentCount: activePlayers.length,
+      players: activePlayers.slice(0, 25)
     });
   } catch (error) {
     console.error('Yahoo waiver endpoint failed:', error.message);
