@@ -463,6 +463,29 @@ app.get('/api/team/kodiaks', (_req, res) => {
   res.json(kodiaks);
 });
 
+app.get('/api/nfl-roster-check', async (_req, res) => {
+  try {
+    const { latestWeek, activeYahooIds } =
+      await getActiveNflYahooIds();
+
+    return res.json({
+      ok: true,
+      source: 'nflverse',
+      season: 2026,
+      latestWeek,
+      activePlayerCount: activeYahooIds.size,
+      sampleYahooIds: [...activeYahooIds].slice(0, 10)
+    });
+  } catch (error) {
+    console.error('NFL roster check failed:', error.message);
+
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not retrieve NFL roster data.'
+    });
+  }
+});
+
 // -------------------------------------------------------
 // PLAYERS / WAIVERS
 // -------------------------------------------------------
