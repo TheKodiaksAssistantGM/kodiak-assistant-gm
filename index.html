@@ -784,42 +784,74 @@ async function loadWaivers() {
       return;
     }
 
-    for (const player of players) {
-      const row = document.createElement('div');
-      row.className = 'player-row';
+    const positions = [
+      { code: 'QB', label: 'Quarterbacks' },
+      { code: 'RB', label: 'Running Backs' },
+      { code: 'WR', label: 'Wide Receivers' },
+      { code: 'TE', label: 'Tight Ends' }
+    ];
 
-      const details = document.createElement('div');
+    for (const position of positions) {
+      const positionPlayers = players.filter(player =>
+        player.position.split(',').map(p => p.trim()).includes(position.code)
+      );
 
-      const name = document.createElement('div');
-      name.className = 'player-name';
-      name.textContent = player.name;
+      const section = document.createElement('section');
+      section.className = 'waiver-position-section';
 
-      const info = document.createElement('div');
-      info.className = 'player-position';
-      info.textContent = [
-        player.position,
-        player.team,
-        player.bye ? `Bye: Week ${player.bye}` : ''
-      ].filter(Boolean).join(' · ');
+      const sectionHeading = document.createElement('h3');
+      sectionHeading.className = 'waiver-position-heading';
+      sectionHeading.textContent =
+        `${position.label} (${positionPlayers.length})`;
 
-      details.appendChild(name);
-      details.appendChild(info);
+      section.appendChild(sectionHeading);
 
-      if (player.injury || player.status !== 'Available') {
-        const note = document.createElement('div');
-        note.className = 'muted';
-        note.textContent = [player.status, player.injury]
-          .filter(Boolean).join(' · ');
-        details.appendChild(note);
+      if (!positionPlayers.length) {
+        const empty = document.createElement('p');
+        empty.className = 'muted';
+        empty.textContent = 'No available players at this position.';
+        section.appendChild(empty);
       }
 
-      const tag = document.createElement('span');
-      tag.className = 'tag';
-      tag.textContent = 'Yahoo Available';
+      for (const player of positionPlayers) {
+        const row = document.createElement('div');
+        row.className = 'player-row';
 
-      row.appendChild(details);
-      row.appendChild(tag);
-      container.appendChild(row);
+        const details = document.createElement('div');
+
+        const name = document.createElement('div');
+        name.className = 'player-name';
+        name.textContent = player.name;
+
+        const info = document.createElement('div');
+        info.className = 'player-position';
+        info.textContent = [
+          player.position,
+          player.team,
+          player.bye ? `Bye: Week ${player.bye}` : ''
+        ].filter(Boolean).join(' · ');
+
+        details.appendChild(name);
+        details.appendChild(info);
+
+        if (player.injury || player.status !== 'Available') {
+          const note = document.createElement('div');
+          note.className = 'muted';
+          note.textContent = [player.status, player.injury]
+            .filter(Boolean).join(' · ');
+          details.appendChild(note);
+        }
+
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = 'Yahoo Available';
+
+        row.appendChild(details);
+        row.appendChild(tag);
+        section.appendChild(row);
+      }
+
+      container.appendChild(section);
     }
   } catch (error) {
     console.error('Waivers error:', error);
