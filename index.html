@@ -747,74 +747,39 @@ async function loadWaivers() {
   try {
     const result = await getJSON('/api/waivers');
 
-    if (!result.ok || !result.data) {
+    if (!result.ok || !Array.isArray(result.players)) {
       throw new Error(result.error || 'Yahoo player data is missing.');
     }
 
-const leagueData = result.data.fantasy_content?.league;
+    const players = result.players
+      .map(player => {
+        const name = player.name?.full || player.name || 'Unknown player';
+        const position = player.display_position || player.position || '';
 
-const playersContainer = Array.isArray(leagueData)
-  ? leagueData.find(item => item && item.players)
-  : leagueData;
-
-const yahooPlayers = playersContainer?.players;
-
-    if (!yahooPlayers) {
-      container.textContent = 'Yahoo returned no player list.';
-      return;
-    }
-
-    const players = [];
-
-    for (const [key, entry] of Object.entries(yahooPlayers)) {
-      if (!/^\d+$/.test(key)) continue;
-
-      const rawPlayer = entry?.player;
-      if (!Array.isArray(rawPlayer)) continue;
-
-      const properties = Array.isArray(rawPlayer[0])
-        ? rawPlayer[0]
-        : rawPlayer;
-      container.dataset.waiverDebug = JSON.stringify({
-  key,
-  rawPlayerType: Array.isArray(rawPlayer),
-  firstPlayerItem: rawPlayer[0]
-});
-
-      const player = {};
-
-      for (const item of properties) {
-        if (!item || typeof item !== 'object') continue;
-
-        for (const [field, value] of Object.entries(item)) {
-          player[field] = value;
-        }
-      }
-
-      const position = player.display_position || '';
-      if (!['QB', 'RB', 'WR', 'TE'].includes(position)) continue;
-
-      players.push({
-        name: player.name?.full || 'Unknown player',
-        position,
-        team: player.editorial_team_abbr || '',
-        status: player.status_full || player.status || 'Available',
-        injury: player.injury_note || '',
-        bye: player.bye_weeks?.week || ''
-      });
-    }
+        return {
+          name,
+          position,
+          team: player.editorial_team_abbr || player.team || '',
+          status: player.status_full || player.status || 'Available',
+          injury: player.injury_note || '',
+          bye: player.bye_weeks?.week || ''
+        };
+      })
+      .filter(player =>
+        ['QB', 'RB', 'WR', 'TE'].includes(player.position)
+      );
 
     container.replaceChildren();
 
     const heading = document.createElement('p');
     heading.className = 'muted';
     heading.textContent =
-      `Live Yahoo data · ${players.length} skill-position players in this batch`;
+      `Live Yahoo data · ${players.length} skill-position players`;
     container.appendChild(heading);
 
     if (!players.length) {
       const empty = document.createElement('p');
-      empty.textContent = 'No skill-position players found in this batch.';
+      empty.textContent = 'No active skill-position free agents found.';
       container.appendChild(empty);
       return;
     }
