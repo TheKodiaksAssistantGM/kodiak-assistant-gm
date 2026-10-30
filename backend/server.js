@@ -495,7 +495,7 @@ app.get('/api/waivers', async (_req, res) => {
     const accessToken = await getSavedYahooAccessToken();
 
     const response = await fetch(
-     'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=FA;start=0;count=25?format=json',
+      'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/players;status=FA;start=0;count=25?format=json',
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -515,19 +515,43 @@ app.get('/api/waivers', async (_req, res) => {
 
     const data = await response.json();
 
+    const { latestWeek, activeYahooIds } =
+      await getActiveNflYahooIds();
+
+    const playersObject =
+      data?.fantasy_content?.league?.[1]?.players;
+
+    const playerEntries = playersObject
+      ? Object.entries(playersObject)
+          .filter(([key]) => key !== 'count')
+          .map(([, value]) => value?.player?.[0])
+          .filter(Boolean)
+      : [];
+
+    const filteredPlayers = playerEntries.filter(player => {
+      const yahooId = String(
+        player?.player_id ?? ''
+      );
+
+      return yahooId && activeYahooIds.has(yahooId);
+    });
+
     return res.json({
       ok: true,
       demoMode: false,
-      source: 'Yahoo Fantasy API',
-      message: 'Live available-player data retrieved.',
-      data
+      source: 'Yahoo Fantasy API + nflverse',
+      message: 'Active NFL free agents retrieved.',
+      rosterWeek: latestWeek,
+      yahooFreeAgentCount: playerEntries.length,
+      activeFreeAgentCount: filteredPlayers.length,
+      players: filteredPlayers
     });
   } catch (error) {
     console.error('Yahoo waiver endpoint failed:', error.message);
 
     return res.status(502).json({
       ok: false,
-      error: 'Could not retrieve Yahoo waiver data. Check server logs.'
+      error: 'Could not retrieve filtered Yahoo waiver data. Check server logs.'
     });
   }
 });
