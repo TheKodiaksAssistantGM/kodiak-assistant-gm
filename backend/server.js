@@ -455,6 +455,91 @@ app.get('/api/teams', (_req, res) => {
   });
 });
 
+
+app.get('/api/transactions', async (_req, res) => {
+  try {
+    const accessToken = await getSavedYahooAccessToken();
+
+    const url =
+      'https://fantasysports.yahooapis.com/fantasy/v2/league/470.l.667251/transactions;count=25?format=json';
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.error(
+        'Yahoo transactions request failed:',
+        response.status
+      );
+
+      return res.status(502).json({
+        ok: false,
+        error: `Yahoo API returned HTTP ${response.status}.`
+      });
+    }
+
+    const data = await response.json();
+
+    const leagueData = data?.fantasy_content?.league;
+    const transactionsObject = leagueData?.[1]?.transactions;
+
+    if (!transactionsObject) {
+      return res.json({
+        ok: true,
+        source: 'Yahoo Fantasy API',
+        transactions: []
+      });
+    }
+
+    const transactions = Object.entries(transactionsObject)
+      .filter(([key]) => key !== 'count')
+      .map(([, value]) => {
+        const transactionData =
+          value?.transaction?.[0];
+
+        if (!Array.isArray(transactionData)) return null;
+
+        const transaction = {};
+
+        for (const field of transactionData) {
+          if (
+            field &&
+            typeof field === 'object' &&
+            !Array.isArray(field)
+          ) {
+            Object.assign(transaction, field);
+          }
+        }
+
+        return Object.keys(transaction).length
+          ? transaction
+          : null;
+      })
+      .filter(Boolean);
+
+    return res.json({
+      ok: true,
+      source: 'Yahoo Fantasy API',
+      count: transactions.length,
+      transactions
+    });
+  } catch (error) {
+    console.error(
+      'Yahoo transactions endpoint failed:',
+      error.message
+    );
+
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not retrieve Yahoo league transactions.'
+    });
+  }
+});
+
 // -------------------------------------------------------
 // KODIAKS
 // -------------------------------------------------------
